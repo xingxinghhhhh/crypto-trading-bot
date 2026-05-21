@@ -1,0 +1,50 @@
+benchmark:
+  datasets:
+    - name: BTC_USDT_1h
+      symbol: BTC/USDT
+      timeframe: 1h
+      csv_path: data/BTC_USDT_1h.csv
+
+    - name: BTC_USDT_4h
+      symbol: BTC/USDT
+      timeframe: 4h
+      csv_path: data/BTC_USDT_4h.csv
+
+    - name: ETH_USDT_1h
+      symbol: ETH/USDT
+      timeframe: 1h
+      csv_path: data/ETH_USDT_1h.csv
+
+    - name: ETH_USDT_4h
+      symbol: ETH/USDT
+      timeframe: 4h
+      csv_path: data/ETH_USDT_4h.csv
+
+    - name: SOL_USDT_1h
+      symbol: SOL/USDT
+      timeframe: 1h
+      csv_path: data/SOL_USDT_1h.csv
+
+    - name: SOL_USDT_4h
+      symbol: SOL/USDT
+      timeframe: 4h
+      csv_path: data/SOL_USDT_4h.csv
+
+  strategies:
+    - name: moving_average_cross
+      config: config.long.btc.1h.yaml
+
+    - name: moving_average_cross_filtered
+      config: config.long.btc.1h.filtered.example.yaml
+
+    - name: donchian_breakout
+      config: config.long.btc.1h.donchian.example.yaml
+
+    - name: rsi_mean_reversion
+      config: config.long.btc.1h.rsi.example.yaml
+
+    - name: bollinger_mean_reversion
+      config: config.long.btc.1h.bollinger.example.yaml
+
+    - name: ema_pullback
+      config: config.long.btc.1h.ema_pullback.example.yaml

@@ -1,0 +1,72 @@
+mode: backtest
+exchange: okx
+symbols: ["BTC/USDT"]
+timeframe: "1h"
+initial_cash: 10000
+quote_currency: USDT
+live_trading: false
+
+market_data:
+  source: csv
+  csv_path: data/BTC_USDT_1h.csv
+  csv_files:
+    BTC/USDT: data/BTC_USDT_1h.csv
+  exchange: okx
+  symbols: ["BTC/USDT"]
+  timeframe: "1h"
+  limit: 100
+
+strategy:
+  name: donchian_breakout
+  entry_window: 20
+  exit_window: 10
+  atr_window: 14
+  atr_multiplier: 2.0
+
+risk:
+  max_position_pct: 0.2
+  max_daily_loss_pct: 0.03
+  max_drawdown_pct: 0.1
+  stop_loss_pct: 0.02
+  take_profit_pct: 0.04
+  allow_pyramiding: false
+  max_trades_per_day: 20
+  min_bars_required: 50
+  pause_on_missing_data: true
+  abnormal_move_pct: 0.08
+
+execution:
+  fee_rate: 0.001
+  slippage_bps: 5
+
+storage:
+  url: sqlite:///data/trading.db
+
+regime_filter:
+  enabled: false
+  min_moving_average_slope: null
+  min_trend_strength: null
+  max_range_bound_score: null
+  max_window_drawdown_pct: null
+  min_price_above_slow_ma_pct: null
+  min_volume_change_pct: null
+
+optimization:
+  strategy_name: donchian_breakout
+  entry_windows: [20, 40, 60]
+  exit_windows: [10, 20, 30]
+  atr_windows: [14]
+  atr_multipliers: [1.5, 2.0, 3.0]
+  min_trades: 5
+  score:
+    max_drawdown_penalty: 2.0
+  walk_forward:
+    enabled: true
+    mode: rolling
+    train_bars: 3000
+    test_bars: 720
+    step_bars: 720
+    train_ratio: 0.7
+    test_ratio: 0.3
+    min_train_bars: 1000
+    min_test_bars: 300

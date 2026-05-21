@@ -1,0 +1,57 @@
+mode: paper
+exchange: local_csv
+symbols:
+  - BTC/USDT
+timeframe: 1m
+initial_cash: 10000
+quote_currency: USDT
+live_trading: false
+
+market_data:
+  source: csv
+  csv_path: data/sample_ohlcv.csv
+  csv_files:
+    "BTC/USDT": data/sample_ohlcv.csv
+  exchange: binance
+  symbols:
+    - BTC/USDT
+  timeframe: 1m
+  limit: 100
+
+strategy:
+  name: moving_average_cross
+  fast_window: 3
+  slow_window: 5
+
+risk:
+  max_position_pct: 0.2
+  max_daily_loss_pct: 0.03
+  max_drawdown_pct: 0.1
+  stop_loss_pct: 0.02
+  take_profit_pct: 0.04
+  allow_pyramiding: false
+  max_trades_per_day: 20
+  min_bars_required: 6
+  pause_on_missing_data: true
+  abnormal_move_pct: 0.08
+  min_order_notional: 10
+
+execution:
+  fee_rate: 0.001
+  slippage_bps: 5
+
+storage:
+  url: sqlite:///data/trading.db
+
+optimization:
+  fast_windows: [5, 10, 15]
+  slow_windows: [30, 50]
+  min_trades: 3
+  score:
+    max_drawdown_penalty: 2.0
+  walk_forward:
+    enabled: true
+    train_ratio: 0.7
+    test_ratio: 0.3
+    min_train_bars: 100
+    min_test_bars: 50
