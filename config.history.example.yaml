@@ -19,6 +19,7 @@ market_data:
   since: "2024-01-01"
   until: "2026-05-16"
   limit: 100
+  use_environment_proxy: true
 
 strategy:
   name: moving_average_cross

@@ -1,0 +1,41 @@
+schema_version: 1
+policy_version: 1
+extension_id: okx_convenience_six_asset_1h_v1
+source_promotion_sha256: 3c7cbbbd5b3fbf5420a67df7e877c9899d8c83b97823150dde9747ee414e57f9
+source_snapshot_received_at: "2026-08-02T15:49:19.356645+00:00"
+selected_inst_ids:
+  - KNC-USDT
+  - SWFTC-USDT
+  - BICO-USDT
+history_start: "2022-01-01T00:00:00+00:00"
+end_open: "2026-08-02T14:00:00+00:00"
+end_policy: floor_source_snapshot_minus_5s_to_1h_then_previous_fully_closed_bar
+timeframe: 1h
+okx_bar: 1H
+bar_duration_ms: 3600000
+limit: 300
+expected_bar_count: 40191
+expected_page_count: 134
+stable_data_root: data/promoted/okx_convenience_v1/1h
+base_panel_id: btc_eth_sol_1h_v1
+target_panel_id: btc_eth_sol_knc_swftc_bico_1h_v1
+alignment: inner_exact
+expected_panel:
+  common_first_timestamp: "2024-01-01T00:00:00+00:00"
+  common_last_timestamp: "2026-04-30T23:00:00+00:00"
+  intersection_bar_count: 20424
+  union_bar_count: 40191
+  coverage_rate: 0.5081734716727626
+  boundary_drops:
+    btc_usdt_1h_v1: [0, 360]
+    eth_usdt_1h_v1: [0, 0]
+    sol_usdt_1h_v1: [0, 0]
+    okx_knc_usdt_1h_frozen: [17520, 2247]
+    okx_swftc_usdt_1h_frozen: [17520, 2247]
+    okx_bico_usdt_1h_frozen: [17520, 2247]
+claims:
+  universe_kind: current_okx_live_convenience_snapshot
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  profitability_evidence: false
+  strategy_approval: false

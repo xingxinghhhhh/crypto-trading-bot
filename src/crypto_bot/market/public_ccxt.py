@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
@@ -14,18 +15,41 @@ SUPPORTED_EXCHANGES = {"binance", "okx"}
 OHLCV_COLUMNS = ["timestamp", "open", "high", "low", "close", "volume"]
 
 
+@dataclass(frozen=True)
+class PublicOhlcvBatch:
+    raw_rows: list[list[float]]
+    frame: pd.DataFrame
+
+
 class PublicMarketDataProvider:
     def __init__(
         self,
         exchange_id: str,
         exchange_factory: Callable[[dict[str, Any]], Any] | None = None,
+        *,
+        use_environment_proxy: bool = False,
     ) -> None:
         if exchange_id not in SUPPORTED_EXCHANGES:
             raise MarketDataError(f"unsupported_exchange:{exchange_id}")
         self.exchange_id = exchange_id
-        self.exchange = exchange_factory({"enableRateLimit": True}) if exchange_factory else self._build_exchange(exchange_id)
+        exchange_config = {
+            "enableRateLimit": True,
+            "requests_trust_env": use_environment_proxy,
+        }
+        self.exchange = exchange_factory(exchange_config) if exchange_factory else self._build_exchange(
+            exchange_id,
+            exchange_config,
+        )
 
     def fetch_ohlcv(self, symbol: str, timeframe: str = "1m", limit: int = 100) -> pd.DataFrame:
+        return self.fetch_ohlcv_batch(symbol, timeframe=timeframe, limit=limit).frame
+
+    def fetch_ohlcv_batch(
+        self,
+        symbol: str,
+        timeframe: str = "1m",
+        limit: int = 100,
+    ) -> PublicOhlcvBatch:
         try:
             rows = self.exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
         except Exception as exc:  # ccxt raises exchange-specific NetworkError/ExchangeError subclasses.
@@ -45,15 +69,15 @@ class PublicMarketDataProvider:
             timeframe,
             len(frame),
         )
-        return frame
+        return PublicOhlcvBatch(raw_rows=rows, frame=frame)
 
-    def _build_exchange(self, exchange_id: str) -> Any:
+    def _build_exchange(self, exchange_id: str, exchange_config: dict[str, Any]) -> Any:
         import ccxt
 
         exchange_cls = getattr(ccxt, exchange_id, None)
         if exchange_cls is None:
             raise MarketDataError(f"unsupported_exchange:{exchange_id}")
-        return exchange_cls({"enableRateLimit": True})
+        return exchange_cls(exchange_config)
 
     def _normalize_ohlcv(self, rows: list[list[float]]) -> pd.DataFrame:
         if not rows:

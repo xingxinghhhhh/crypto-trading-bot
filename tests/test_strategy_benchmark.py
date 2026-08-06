@@ -103,7 +103,7 @@ benchmark:
       csv_path: data/ETH_USDT_4h.csv
   strategies:
     - name: ma
-      config: config.long.btc.1h.yaml
+      config: config.long.btc.1h.example.yaml
 """,
         encoding="utf-8",
     )

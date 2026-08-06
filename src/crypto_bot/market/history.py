@@ -48,7 +48,11 @@ def fetch_history_to_csv(
         _write_csv_atomically(merged, output_path)
         return HistoryFetchResult(output_path, symbol, fetched_rows=0, written_rows=len(merged))
 
-    exchange = _build_exchange(market_config.exchange, exchange_factory)
+    exchange = _build_exchange(
+        market_config.exchange,
+        market_config.use_environment_proxy,
+        exchange_factory,
+    )
     fetched = _fetch_pages(
         exchange=exchange,
         symbol=symbol,
@@ -75,10 +79,17 @@ def fetch_history_to_csv(
     return HistoryFetchResult(output_path, symbol, fetched_rows=len(fetched), written_rows=len(merged))
 
 
-def _build_exchange(exchange_id: str, exchange_factory: Callable[[dict[str, Any]], Any] | None) -> Any:
+def _build_exchange(
+    exchange_id: str,
+    use_environment_proxy: bool,
+    exchange_factory: Callable[[dict[str, Any]], Any] | None,
+) -> Any:
     if exchange_id not in SUPPORTED_EXCHANGES:
         raise MarketDataError(f"unsupported_exchange:{exchange_id}")
-    config = {"enableRateLimit": True}
+    config = {
+        "enableRateLimit": True,
+        "requests_trust_env": use_environment_proxy,
+    }
     if exchange_factory:
         return exchange_factory(config)
 

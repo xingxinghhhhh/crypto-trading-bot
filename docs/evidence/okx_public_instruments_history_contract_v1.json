@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "provider": "okx",
+  "official_url": "https://www.okx.com/docs-v5/en/",
+  "captured_contract_date": "2026-08-02",
+  "instruments": {
+    "endpoint": "https://www.okx.com/api/v5/public/instruments",
+    "request_params": {"instType": "SPOT"},
+    "required_fields": [
+      "instType",
+      "instId",
+      "baseCcy",
+      "quoteCcy",
+      "state",
+      "ruleType",
+      "instCategory",
+      "listTime",
+      "contTdSwTime"
+    ],
+    "continuous_start_rule": "contTdSwTime_when_non_empty_else_listTime"
+  },
+  "history_candles": {
+    "endpoint": "https://www.okx.com/api/v5/market/history-candles",
+    "bar": "4H",
+    "maximum_limit": 300,
+    "after_semantics": "records_strictly_earlier_than_ts",
+    "response_order": "newest_first",
+    "response_shape": ["ts", "o", "h", "l", "c", "vol", "volCcy", "volCcyQuote", "confirm"],
+    "timestamp_meaning": "bar_open_time",
+    "confirmed_value": "1"
+  },
+  "scope": "public_market_data_only",
+  "private_api_required": false,
+  "trading_api_required": false
+}

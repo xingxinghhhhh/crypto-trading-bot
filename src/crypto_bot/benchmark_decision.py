@@ -76,7 +76,6 @@ def _strategy_decision(summary: dict[str, Any], rows: list[dict[str, Any]]) -> d
     average_return = _number(summary.get("average_test_return_pct"), default=0)
     average_passing = _number(summary.get("average_passing_window_count"), default=0)
     max_passing = max((_number(row.get("passing_window_count"), default=0) for row in rows), default=0)
-    strong_rows = [row for row in rows if _number(row.get("passing_window_count"), default=0) >= WATCHLIST_PASSING_WINDOW_THRESHOLD]
     concentrated_rows = [row for row in rows if "window_performance_concentrated" in str(row.get("readiness_issues") or "")]
     insufficient_rows = [row for row in rows if _has_insufficient_issue(row)]
     weak_positive_windows = _positive_windows_clearly_weaker(rows)

@@ -1,0 +1,54 @@
+schema_version: 1
+policy_version: 1
+universe_kind: current_okx_live_convenience_snapshot
+target_count: 3
+history_start: "2022-01-01T00:00:00Z"
+timeframe: 4h
+okx_bar: 4H
+quote_currency: USDT
+
+instrument_requirements:
+  inst_type: SPOT
+  state: live
+  rule_type: normal
+  inst_category: "1"
+
+stablecoin_base_denylist:
+  - CRVUSD
+  - DAI
+  - EURC
+  - EURT
+  - FDUSD
+  - FRAX
+  - GUSD
+  - LUSD
+  - PYUSD
+  - SUSD
+  - TUSD
+  - USD0
+  - USDC
+  - USDD
+  - USDE
+  - USDG
+  - USDJ
+  - USDP
+  - USDS
+  - USDT
+
+leveraged_token_anchored_patterns:
+  - "^[A-Z0-9]+(?:3L|3S|5L|5S)$"
+  - "^[A-Z0-9]+(?:BULL|BEAR)$"
+
+existing_base_exclusions:
+  - BTC
+  - ETH
+  - SOL
+
+selection:
+  policy: sha256_ascending
+  version: okx-convenience-universe-v1
+  identity_prefix: "okx-convenience-universe-v1|"
+
+future_snapshot_exit_policy: stop_future_intake_only_never_delete_or_rewrite_frozen_data
+historical_point_in_time_membership: false
+survivorship_bias_resolved: false

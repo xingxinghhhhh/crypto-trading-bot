@@ -27,6 +27,11 @@ class Account:
             self.positions[symbol] = Position(symbol=symbol)
         return self.positions[symbol]
 
+    def cash_balance(self) -> float:
+        if self.cash is None:
+            raise RuntimeError("account cash is not initialized")
+        return self.cash
+
     def equity(self, prices: dict[str, float] | None = None) -> float:
         total = float(self.cash or 0.0)
         prices = prices or {}
@@ -46,15 +51,16 @@ class Account:
     def apply_fill(self, fill: Fill) -> float:
         position = self.get_position(fill.symbol)
         gross = fill.quantity * fill.price
+        cash = self.cash_balance()
         if fill.side == OrderSide.BUY:
             total_cost = gross + fill.fee
-            if total_cost > float(self.cash):
+            if total_cost > cash:
                 raise ValueError("insufficient cash for fill")
-            self.cash = round(float(self.cash) - total_cost, 10)
+            self.cash = round(cash - total_cost, 10)
             position.apply_buy(fill.quantity, fill.price)
             return 0.0
 
         pnl = position.apply_sell(fill.quantity, fill.price)
-        self.cash = round(float(self.cash) + gross - fill.fee, 10)
+        self.cash = round(cash + gross - fill.fee, 10)
         self.realized_pnl += pnl - fill.fee
         return pnl - fill.fee

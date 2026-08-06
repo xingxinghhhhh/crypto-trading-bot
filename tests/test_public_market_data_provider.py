@@ -100,3 +100,36 @@ def test_public_market_data_provider_supports_okx_fetch_ohlcv_path():
     assert len(frame) == 2
     assert fake.fetch_calls == [("BTC/USDT", "1m", 2)]
     assert fake.create_order_called is False
+
+
+def test_public_market_data_provider_explicitly_enables_environment_proxy():
+    captured_config = {}
+    fake = FakeExchange()
+
+    def factory(config):
+        captured_config.update(config)
+        return fake
+
+    provider = PublicMarketDataProvider(
+        exchange_id="okx",
+        use_environment_proxy=True,
+        exchange_factory=factory,
+    )
+
+    provider.fetch_ohlcv("BTC/USDT", timeframe="1m", limit=2)
+
+    assert captured_config == {
+        "enableRateLimit": True,
+        "requests_trust_env": True,
+    }
+
+
+def test_public_market_data_provider_does_not_trust_environment_proxy_by_default():
+    captured_config = {}
+
+    PublicMarketDataProvider(
+        exchange_id="okx",
+        exchange_factory=lambda config: captured_config.update(config) or FakeExchange(),
+    )
+
+    assert captured_config["requests_trust_env"] is False

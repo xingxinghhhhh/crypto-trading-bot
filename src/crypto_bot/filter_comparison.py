@@ -15,7 +15,7 @@ from crypto_bot.optimization.export import export_optimization_reports
 from crypto_bot.portfolio.account import Account
 from crypto_bot.regime_filter import RegimeFilter, RegimeFilterSettings
 from crypto_bot.risk.manager import RiskManager, RiskSettings
-from crypto_bot.strategy.moving_average_cross import MovingAverageCrossStrategy
+from crypto_bot.strategy.factory import create_strategy
 from crypto_bot.strategy_readiness import evaluate_strategy_readiness
 
 
@@ -107,7 +107,7 @@ def _run_case(prefix: str, config: AppConfig, output_dir: Path, stamp: str) -> d
 
 def _run_backtest(config: AppConfig, bars, symbol: str):
     engine = BacktestEngine(
-        strategy=MovingAverageCrossStrategy(config.strategy.fast_window, config.strategy.slow_window),
+        strategy=create_strategy(config.strategy),
         risk_manager=RiskManager(RiskSettings(**config.risk.__dict__)),
         execution_engine=PaperExecutionEngine(config.execution.fee_rate, config.execution.slippage_bps),
         account=Account(config.initial_cash),

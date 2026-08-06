@@ -20,11 +20,16 @@ class MarketDataConfig:
     since: str | None = None
     until: str | None = None
     limit: int = 100
+    use_environment_proxy: bool = False
+    require_closed_bars: bool = True
+    max_staleness_seconds: float | None = None
+    max_clock_skew_seconds: float = 5.0
 
 
 @dataclass(frozen=True)
 class StrategyConfig:
     name: str = "moving_average_cross"
+    readiness: str = "not_ready"
     fast_window: int = 10
     slow_window: int = 30
     entry_window: int = 20
@@ -185,8 +190,8 @@ def load_config(path: str | Path) -> AppConfig:
 
 
 def validate_config(config: AppConfig) -> None:
-    if config.mode not in {"backtest", "paper", "live"}:
-        raise ConfigError("mode must be one of: backtest, paper, live")
+    if config.mode not in {"backtest", "paper", "shadow", "live"}:
+        raise ConfigError("mode must be one of: backtest, paper, shadow, live")
     if config.mode == "live":
         raise ConfigError("live mode is reserved and disabled in the MVP")
     if config.live_trading:
@@ -201,6 +206,12 @@ def validate_config(config: AppConfig) -> None:
         raise ConfigError("market_data.exchange must be one of: binance, okx")
     if config.market_data.limit <= 0:
         raise ConfigError("market_data.limit must be positive")
+    if not isinstance(config.market_data.use_environment_proxy, bool):
+        raise ConfigError("market_data.use_environment_proxy must be a boolean")
+    if config.market_data.max_staleness_seconds is not None and config.market_data.max_staleness_seconds <= 0:
+        raise ConfigError("market_data.max_staleness_seconds must be positive when set")
+    if config.market_data.max_clock_skew_seconds < 0:
+        raise ConfigError("market_data.max_clock_skew_seconds must be non-negative")
     if not config.market_data.symbols:
         raise ConfigError("market_data.symbols must contain at least one symbol")
     supported_strategies = {
@@ -212,6 +223,8 @@ def validate_config(config: AppConfig) -> None:
     }
     if config.strategy.name not in supported_strategies:
         raise ConfigError("strategy.name must be one of: " + ", ".join(sorted(supported_strategies)))
+    if config.strategy.readiness not in {"not_ready", "paper_ready", "live_ready"}:
+        raise ConfigError("strategy.readiness must be one of: not_ready, paper_ready, live_ready")
     if config.strategy.name == "moving_average_cross":
         if config.strategy.fast_window <= 0 or config.strategy.slow_window <= 0:
             raise ConfigError("strategy windows must be positive")

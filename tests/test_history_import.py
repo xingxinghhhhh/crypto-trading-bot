@@ -20,7 +20,7 @@ class FakePagedExchange:
         return self.pages.pop(0)
 
 
-def _config(limit=2):
+def _config(limit=2, use_environment_proxy=False):
     return AppConfig(
         mode="paper",
         market_data=MarketDataConfig(
@@ -31,6 +31,7 @@ def _config(limit=2):
             since="2024-01-01",
             until="2024-01-01T04:00:00Z",
             limit=limit,
+            use_environment_proxy=use_environment_proxy,
         ),
     )
 
@@ -131,3 +132,22 @@ def test_fetch_history_network_failure_does_not_create_new_file(tmp_path):
         fetch_history_to_csv(_config(), output, exchange_factory=lambda _: BrokenExchange())
 
     assert not Path(output).exists()
+
+
+def test_fetch_history_passes_environment_proxy_setting_to_ccxt_factory(tmp_path):
+    output = tmp_path / "BTC_USDT_1h.csv"
+    captured_config = {}
+    exchange = FakePagedExchange(
+        [
+            [[1_704_067_200_000, 10, 11, 9, 10.5, 100]],
+            [],
+        ]
+    )
+
+    fetch_history_to_csv(
+        _config(use_environment_proxy=True),
+        output,
+        exchange_factory=lambda config: captured_config.update(config) or exchange,
+    )
+
+    assert captured_config["requests_trust_env"] is True

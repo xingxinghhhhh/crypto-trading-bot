@@ -54,6 +54,7 @@ class BacktestEngine:
         total_slippage = 0.0
         trades_today = 0
         current_trade_date = None
+        day_start_equity = self.account.equity()
         exposure_bars = 0
         rejected_reasons: Counter[str] = Counter()
         filter_rejected_reasons: Counter[str] = Counter()
@@ -71,10 +72,11 @@ class BacktestEngine:
             row = bars.iloc[index]
             timestamp = row["timestamp"].to_pydatetime()
             trade_date = timestamp.date()
+            close = float(row["close"])
             if trade_date != current_trade_date:
                 current_trade_date = trade_date
                 trades_today = 0
-            close = float(row["close"])
+                day_start_equity = self.account.equity({symbol: close})
             missing_data = bool(row[["open", "high", "low", "close", "volume"]].isna().any())
             abnormal_move = False
             if previous_close and previous_close > 0:
@@ -89,7 +91,12 @@ class BacktestEngine:
             if self.storage:
                 self.storage.record_signal(signal, close)
 
-            if signal.side.value == "hold":
+            protective_decision = self.risk_manager.evaluate_protective_exit(
+                signal,
+                self.account,
+                close,
+            )
+            if signal.side.value == "hold" and protective_decision is None:
                 position = self.account.get_position(symbol)
                 if position.quantity > 0:
                     exposure_bars += 1
@@ -110,7 +117,7 @@ class BacktestEngine:
                     self.storage.record_balance_snapshot(equity, self.account.cash or 0.0, timestamp)
                 continue
 
-            if self.regime_filter and signal.side.value != "hold":
+            if protective_decision is None and self.regime_filter and signal.side.value != "hold":
                 filter_decision = self.regime_filter.evaluate(signal, window)
                 if not filter_decision.approved:
                     filter_rejected_reasons[filter_decision.reason] += 1
@@ -137,7 +144,13 @@ class BacktestEngine:
             elif signal.side.value != "hold":
                 passed_filter_signal_count += 1
 
-            decision = self.risk_manager.evaluate(
+            current_equity = self.account.equity({symbol: close})
+            daily_loss_pct = (
+                max(0.0, (day_start_equity - current_equity) / day_start_equity)
+                if day_start_equity > 0
+                else 0.0
+            )
+            decision = protective_decision or self.risk_manager.evaluate(
                 signal=signal,
                 account=self.account,
                 market_price=close,
@@ -145,6 +158,7 @@ class BacktestEngine:
                 missing_data=missing_data,
                 abnormal_move=abnormal_move,
                 trades_today=trades_today,
+                daily_loss_pct=daily_loss_pct,
             )
             if self.storage:
                 self.storage.record_risk_event(signal, decision)
@@ -169,7 +183,13 @@ class BacktestEngine:
                 if self.storage:
                     self.storage.record_order(decision.order)
                 before_realized = self.account.realized_pnl
-                fill = self.execution_engine.execute(decision.order, self.account, close, timestamp)
+                fill = self.execution_engine.execute(
+                    decision.order,
+                    self.account,
+                    close,
+                    timestamp,
+                    approval=decision.approval,
+                )
                 fills.append(fill)
                 trades_today += 1
                 total_fees += fill.fee

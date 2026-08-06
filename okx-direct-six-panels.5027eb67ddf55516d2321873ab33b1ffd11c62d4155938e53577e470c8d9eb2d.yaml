@@ -1,0 +1,11 @@
+schema_version: 1
+panels:
+- panel_id: okx_btc_eth_sol_knc_swftc_bico_1h_direct_v1
+  dataset_ids:
+  - okx_btc_usdt_1h_direct_frozen
+  - okx_eth_usdt_1h_direct_frozen
+  - okx_sol_usdt_1h_direct_frozen
+  - okx_knc_usdt_1h_frozen
+  - okx_swftc_usdt_1h_frozen
+  - okx_bico_usdt_1h_frozen
+  alignment: inner_exact

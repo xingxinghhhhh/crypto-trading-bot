@@ -1,0 +1,31 @@
+schema_version: 1
+
+factors:
+  - family: momentum
+    window: 4
+  - family: momentum
+    window: 12
+  - family: mean_reversion
+    window: 20
+  - family: low_volatility
+    window: 20
+  - family: volume_momentum
+    window: 20
+  - family: trend_quality
+    window: 20
+
+horizon_mapping:
+  - source_timeframe: 4h
+    source_horizon_bars: 1
+    target_timeframe: 1h
+    target_horizon_bars: 4
+  - source_timeframe: 4h
+    source_horizon_bars: 4
+    target_timeframe: 1h
+    target_horizon_bars: 16
+  - source_timeframe: 4h
+    source_horizon_bars: 16
+    target_timeframe: 1h
+    target_horizon_bars: 64
+
+oos_policy_id: purged_expanding_half_ten_fold_v1

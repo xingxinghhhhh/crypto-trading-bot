@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from crypto_bot.execution.approval import RiskApproval, _issue_risk_approval
 from crypto_bot.execution.models import OrderIntent, OrderSide
 from crypto_bot.portfolio.account import Account
 from crypto_bot.strategy.signals import Signal, SignalSide
@@ -27,6 +28,7 @@ class RiskDecision:
     approved: bool
     reason: str
     order: OrderIntent | None = None
+    approval: RiskApproval | None = None
 
 
 class RiskManager:
@@ -67,6 +69,26 @@ class RiskManager:
             return RiskDecision(False, "max_trades_per_day")
         return decision
 
+    def evaluate_protective_exit(
+        self,
+        signal: Signal,
+        account: Account,
+        market_price: float,
+    ) -> RiskDecision | None:
+        if market_price <= 0 or signal.side == SignalSide.SELL:
+            return None
+        position = account.get_position(signal.symbol)
+        if position.quantity <= 0 or position.avg_price <= 0:
+            return None
+
+        loss_pct = (position.avg_price - market_price) / position.avg_price
+        gain_pct = (market_price - position.avg_price) / position.avg_price
+        if loss_pct >= self.settings.stop_loss_pct:
+            return self._protective_sell(signal, position.quantity, market_price, "stop_loss")
+        if gain_pct >= self.settings.take_profit_pct:
+            return self._protective_sell(signal, position.quantity, market_price, "take_profit")
+        return None
+
     def _evaluate_buy(self, signal: Signal, account: Account, market_price: float) -> RiskDecision:
         position = account.get_position(signal.symbol)
         if position.quantity > 0 and not self.settings.allow_pyramiding:
@@ -86,7 +108,7 @@ class RiskManager:
             reference_price=market_price,
             risk_checked=True,
         )
-        return RiskDecision(True, "approved", order)
+        return RiskDecision(True, "approved", order, _issue_risk_approval(order))
 
     def _evaluate_sell(self, signal: Signal, account: Account, market_price: float) -> RiskDecision:
         position = account.get_position(signal.symbol)
@@ -101,4 +123,22 @@ class RiskManager:
             reference_price=market_price,
             risk_checked=True,
         )
-        return RiskDecision(True, "approved", order)
+        return RiskDecision(True, "approved", order, _issue_risk_approval(order))
+
+    def _protective_sell(
+        self,
+        signal: Signal,
+        quantity: float,
+        market_price: float,
+        reason: str,
+    ) -> RiskDecision:
+        order = OrderIntent(
+            symbol=signal.symbol,
+            side=OrderSide.SELL,
+            quantity=quantity,
+            reason=reason,
+            signal_id=signal.id,
+            reference_price=market_price,
+            risk_checked=True,
+        )
+        return RiskDecision(True, reason, order, _issue_risk_approval(order))

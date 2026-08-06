@@ -1,0 +1,34 @@
+schema_version: 1
+audit_policy_id: legacy_1h_exact_common_next_open_v1
+required_semantics: verified_open_time
+signal_completion_delay_bars: 1
+execution_delay_after_completion_bars: 1
+execution_offset_bars: 2
+execution_price_field: open
+mapping_policy: exact_timestamp_no_fill
+required_asset_count: 6
+required_dataset_ids:
+  - okx_bico_usdt_1h_frozen
+  - btc_usdt_1h_v1
+  - eth_usdt_1h_v1
+  - okx_knc_usdt_1h_frozen
+  - sol_usdt_1h_v1
+  - okx_swftc_usdt_1h_frozen
+timestamp_semantics_report:
+  repo_relative_artifact: reports/timestamp-semantics/timestamp-semantics.fc5f911cf333e6557547b19dc126f464df1d45e0d5e5d8eff99f35d5903a0190.json
+  artifact_sha256: cee944dadd8d678ba89061b03b06dbbc3bbc83b01e3ecfc293e831070d6c1220
+  semantics_sha256: fc5f911cf333e6557547b19dc126f464df1d45e0d5e5d8eff99f35d5903a0190
+legacy_datasets:
+  - dataset_id: btc_usdt_1h_v1
+    expected_status: partial_unverified
+    evidence:
+      - repo_relative_artifact: downloads/BTCUSDT-1h-2024-2026-05-15-binance-klines.csv
+        artifact_sha256: bbb9e0ca2c5b3cc047a7841379ebff6c8d9083fd347bfbb2d017eec778dec724
+      - repo_relative_artifact: config.history.example.yaml
+        artifact_sha256: 5f985a126a951b73978d8c4fcf2dcb36a59d015bad8e82650f818981cb30823e
+  - dataset_id: eth_usdt_1h_v1
+    expected_status: unknown
+    evidence: []
+  - dataset_id: sol_usdt_1h_v1
+    expected_status: unknown
+    evidence: []

@@ -17,9 +17,13 @@ market_data:
     - BTC/USDT
   timeframe: 1m
   limit: 100
+  require_closed_bars: true
+  max_staleness_seconds: 180
+  max_clock_skew_seconds: 5
 
 strategy:
   name: moving_average_cross
+  readiness: not_ready
   fast_window: 3
   slow_window: 5
 

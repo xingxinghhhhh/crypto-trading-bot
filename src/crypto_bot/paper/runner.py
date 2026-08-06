@@ -10,23 +10,21 @@ import pandas as pd
 from crypto_bot.backtest.engine import BacktestResult
 from crypto_bot.backtest.metrics import calculate_backtest_metrics
 from crypto_bot.config import AppConfig
+from crypto_bot.errors import SafetyError
 from crypto_bot.execution.models import Fill
 from crypto_bot.execution.paper_engine import PaperExecutionEngine
 from crypto_bot.logging import redact_secret_text
 from crypto_bot.market.csv_data import REQUIRED_COLUMNS, load_ohlcv_csv
 from crypto_bot.market.public_ccxt import PublicMarketDataProvider
+from crypto_bot.market.realtime_gate import gate_realtime_bars
 from crypto_bot.portfolio.account import Account
 from crypto_bot.risk.manager import RiskDecision, RiskManager, RiskSettings
 from crypto_bot.storage.repositories import SQLiteStorage
-from crypto_bot.strategy.moving_average_cross import MovingAverageCrossStrategy
+from crypto_bot.strategy.base import Strategy
+from crypto_bot.strategy.factory import create_strategy
 from crypto_bot.strategy.signals import Signal, SignalSide
 
 LOGGER = logging.getLogger(__name__)
-
-
-def run_csv_paper_session(config: AppConfig) -> BacktestResult:
-    return run_paper_session(config)
-
 
 def run_paper_session(
     config: AppConfig,
@@ -34,22 +32,31 @@ def run_paper_session(
     *,
     max_iterations: int | None = None,
     interval_seconds: float | None = None,
+    now_provider=None,
 ) -> BacktestResult:
     iterations = max(1, int(max_iterations or 1))
+    if iterations > 1 and config.strategy.readiness != "paper_ready":
+        raise SafetyError("long-running paper requires strategy.readiness=paper_ready")
     sleep_seconds = max(0.0, float(interval_seconds or 0.0))
     run_id = str(uuid4())
     symbol = _paper_symbol(config)
-    account = Account(config.initial_cash)
-    strategy = MovingAverageCrossStrategy(config.strategy.fast_window, config.strategy.slow_window)
+    strategy = create_strategy(config.strategy)
     risk_manager = RiskManager(RiskSettings(**config.risk.__dict__))
     execution_engine = PaperExecutionEngine(config.execution.fee_rate, config.execution.slippage_bps)
     storage = SQLiteStorage(config.storage.url)
+    account = storage.restore_paper_account(config.initial_cash, symbol)
 
     fills: list[Fill] = []
     equity_curve: list[float] = [account.equity()]
     total_fees = 0.0
     total_slippage = 0.0
 
+    storage.record_runtime_heartbeat(
+        "paper",
+        run_id,
+        "started",
+        detail=f"symbol={symbol} iterations={iterations}",
+    )
     try:
         for iteration in range(1, iterations + 1):
             iteration_fills = _run_paper_iteration(
@@ -63,6 +70,7 @@ def run_paper_session(
                 execution_engine=execution_engine,
                 storage=storage,
                 market_data_provider=market_data_provider,
+                now_provider=now_provider,
             )
             fills.extend(iteration_fills)
             total_fees += sum(fill.fee for fill in iteration_fills)
@@ -70,8 +78,29 @@ def run_paper_session(
             latest_close = _latest_close_from_snapshot(storage, run_id, iteration)
             prices = {symbol: latest_close} if latest_close is not None else None
             equity_curve.append(account.equity(prices))
+            storage.record_runtime_heartbeat(
+                "paper",
+                run_id,
+                "healthy",
+                detail=f"iteration={iteration}",
+            )
             if iteration < iterations and sleep_seconds:
                 time.sleep(sleep_seconds)
+        storage.record_runtime_heartbeat(
+            "paper",
+            run_id,
+            "completed",
+            detail=f"iterations={iterations}",
+        )
+    except Exception as exc:
+        storage.rollback_paper_iteration()
+        storage.record_runtime_heartbeat(
+            "paper",
+            run_id,
+            "failed",
+            detail=str(exc),
+        )
+        raise
     finally:
         storage.close()
 
@@ -86,17 +115,42 @@ def _run_paper_iteration(
     iteration: int,
     symbol: str,
     account: Account,
-    strategy: MovingAverageCrossStrategy,
+    strategy: Strategy,
     risk_manager: RiskManager,
     execution_engine: PaperExecutionEngine,
     storage: SQLiteStorage,
     market_data_provider=None,
+    now_provider=None,
 ) -> list[Fill]:
-    now = datetime.now(timezone.utc)
+    now = now_provider() if now_provider else datetime.now(timezone.utc)
     source = config.market_data.source
     exchange = config.market_data.exchange
     timeframe = config.market_data.timeframe
     fills: list[Fill] = []
+
+    kill_switch = storage.kill_switch_status()
+    if kill_switch["engaged"]:
+        _record_snapshot(
+            storage=storage,
+            config=config,
+            run_id=run_id,
+            iteration=iteration,
+            timestamp=now,
+            symbol=symbol,
+            account=account,
+            source=source,
+            exchange=exchange,
+            timeframe=timeframe,
+            order_status="skipped",
+            reason="kill_switch_engaged",
+            skip_reason="kill_switch_engaged",
+            error_message=str(kill_switch["reason"]),
+        )
+        LOGGER.warning(
+            "paper_trade_skipped symbol=%s reason=kill_switch_engaged",
+            symbol,
+        )
+        return fills
 
     try:
         bars = _load_paper_bars(config, symbol, market_data_provider)
@@ -120,7 +174,27 @@ def _run_paper_iteration(
         LOGGER.warning("paper_trade_skipped symbol=%s reason=%s", symbol, redact_secret_text(str(exc)))
         return fills
 
-    validation_error = _validate_bars(bars, min_bars_required=config.risk.min_bars_required)
+    realtime_error: str | None = None
+    if source == "ccxt_public":
+        try:
+            gate_result = gate_realtime_bars(
+                bars,
+                timeframe,
+                now,
+                require_closed_bars=config.market_data.require_closed_bars,
+                max_staleness_seconds=config.market_data.max_staleness_seconds,
+                max_clock_skew_seconds=config.market_data.max_clock_skew_seconds,
+            )
+        except ValueError:
+            realtime_error = "unsupported_timeframe"
+        else:
+            bars = gate_result.bars
+            realtime_error = gate_result.reason
+
+    validation_error = realtime_error or _validate_bars(
+        bars,
+        min_bars_required=config.risk.min_bars_required,
+    )
     latest = bars.iloc[-1] if validation_error is None and not bars.empty else None
     close = float(latest["close"]) if latest is not None else None
     bar_timestamp = _timestamp_to_str(latest["timestamp"]) if latest is not None else None
@@ -147,6 +221,10 @@ def _run_paper_iteration(
             _record_processed_bar(storage, config, symbol, run_id, iteration, now, bar_timestamp)
         LOGGER.warning("paper_trade_skipped symbol=%s reason=%s", symbol, validation_error)
         return fills
+
+    assert latest is not None
+    assert close is not None
+    assert bar_timestamp is not None
 
     if storage.has_processed_bar(source, exchange, symbol, timeframe, bar_timestamp):
         _record_snapshot(
@@ -176,9 +254,10 @@ def _run_paper_iteration(
     skip_reason: str | None = None
     error_message: str | None = None
 
+    storage.begin_paper_iteration()
     try:
         signal = strategy.generate_signal(symbol, bars, latest["timestamp"].to_pydatetime())
-        storage.record_signal(signal, close)
+        storage.record_signal(signal, close, commit=False)
     except Exception as exc:
         order_status = "skipped"
         reason = "strategy_error"
@@ -186,20 +265,32 @@ def _run_paper_iteration(
         error_message = str(exc)
         LOGGER.warning("paper_trade_skipped symbol=%s reason=strategy_error error=%s", symbol, redact_secret_text(str(exc)))
     else:
-        if signal.side == SignalSide.HOLD:
+        risk_decision = risk_manager.evaluate_protective_exit(signal, account, close)
+        if signal.side == SignalSide.HOLD and risk_decision is None:
             reason = signal.reason
             order_status = "no_order"
         else:
             try:
-                risk_decision = risk_manager.evaluate(
-                    signal=signal,
-                    account=account,
-                    market_price=close,
-                    bars_count=len(bars),
-                    missing_data=False,
-                    abnormal_move=_has_abnormal_latest_move(bars, risk_manager.settings.abnormal_move_pct),
-                )
-                storage.record_risk_event(signal, risk_decision)
+                if risk_decision is None:
+                    bar_day = latest["timestamp"].date()
+                    current_equity = account.equity({symbol: close})
+                    starting_equity = storage.starting_equity_for_day(bar_day, account.initial_cash)
+                    daily_loss_pct = (
+                        max(0.0, (starting_equity - current_equity) / starting_equity)
+                        if starting_equity > 0
+                        else 0.0
+                    )
+                    risk_decision = risk_manager.evaluate(
+                        signal=signal,
+                        account=account,
+                        market_price=close,
+                        bars_count=len(bars),
+                        missing_data=False,
+                        abnormal_move=_has_abnormal_latest_move(bars, risk_manager.settings.abnormal_move_pct),
+                        trades_today=storage.count_fills_for_day(bar_day),
+                        daily_loss_pct=daily_loss_pct,
+                    )
+                storage.record_risk_event(signal, risk_decision, commit=False)
             except Exception as exc:
                 order_status = "skipped"
                 reason = "risk_error"
@@ -209,17 +300,28 @@ def _run_paper_iteration(
             else:
                 reason = risk_decision.reason
                 if risk_decision.approved and risk_decision.order is not None:
-                    storage.record_order(risk_decision.order)
-                    fill = execution_engine.execute(risk_decision.order, account, close, latest["timestamp"].to_pydatetime())
-                    storage.record_fill(fill)
+                    storage.record_order(risk_decision.order, commit=False)
+                    fill = execution_engine.execute(
+                        risk_decision.order,
+                        account,
+                        close,
+                        latest["timestamp"].to_pydatetime(),
+                        approval=risk_decision.approval,
+                    )
+                    storage.record_fill(fill, commit=False)
                     fills.append(fill)
                     order_status = "filled"
-                    reason = signal.reason
+                    reason = risk_decision.order.reason
                 else:
                     order_status = "risk_rejected"
 
     equity = account.equity({symbol: close})
-    storage.record_balance_snapshot(equity, account.cash or 0.0, latest["timestamp"].to_pydatetime())
+    storage.record_balance_snapshot(
+        equity,
+        account.cash or 0.0,
+        latest["timestamp"].to_pydatetime(),
+        commit=False,
+    )
     _record_snapshot(
         storage=storage,
         config=config,
@@ -240,8 +342,19 @@ def _run_paper_iteration(
         reason=reason,
         skip_reason=skip_reason,
         error_message=error_message,
+        commit=False,
     )
-    _record_processed_bar(storage, config, symbol, run_id, iteration, now, bar_timestamp)
+    _record_processed_bar(
+        storage,
+        config,
+        symbol,
+        run_id,
+        iteration,
+        now,
+        bar_timestamp,
+        commit=False,
+    )
+    storage.commit_paper_iteration()
     return fills
 
 
@@ -256,7 +369,10 @@ def _load_paper_bars(config: AppConfig, symbol: str, market_data_provider=None) 
         )
         return bars
 
-    provider = market_data_provider or PublicMarketDataProvider(config.market_data.exchange)
+    provider = market_data_provider or PublicMarketDataProvider(
+        config.market_data.exchange,
+        use_environment_proxy=config.market_data.use_environment_proxy,
+    )
     return provider.fetch_ohlcv(
         symbol=symbol,
         timeframe=config.market_data.timeframe,
@@ -303,6 +419,7 @@ def _record_snapshot(
     equity: float | None = None,
     skip_reason: str | None = None,
     error_message: str | None = None,
+    commit: bool = True,
 ) -> None:
     position = account.get_position(symbol)
     snapshot_equity = equity if equity is not None else account.equity({symbol: close} if close is not None else None)
@@ -323,11 +440,15 @@ def _record_snapshot(
             "cash": account.cash or 0.0,
             "position_quantity": position.quantity,
             "position_avg_price": position.avg_price,
+            "account_realized_pnl": account.realized_pnl,
+            "position_realized_pnl": position.realized_pnl,
+            "peak_equity": account.peak_equity or snapshot_equity,
             "equity": snapshot_equity,
             "reason": reason,
             "skip_reason": skip_reason,
             "error_message": error_message,
-        }
+        },
+        commit=commit,
     )
 
 
@@ -339,6 +460,8 @@ def _record_processed_bar(
     iteration: int,
     processed_at: datetime,
     bar_timestamp: str,
+    *,
+    commit: bool = True,
 ) -> None:
     storage.record_processed_bar(
         source=config.market_data.source,
@@ -349,6 +472,7 @@ def _record_processed_bar(
         run_id=run_id,
         iteration=iteration,
         processed_at=processed_at.isoformat(),
+        commit=commit,
     )
 
 

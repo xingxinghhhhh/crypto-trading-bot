@@ -16,16 +16,13 @@ from crypto_bot.config import AppConfig, MarketDataConfig, load_config
 from crypto_bot.execution.paper_engine import PaperExecutionEngine
 from crypto_bot.market.csv_data import load_ohlcv_csv
 from crypto_bot.market.data_quality import DataQualityReport, validate_ohlcv_csv
+from crypto_bot.market.dataset_registry import DatasetRegistry, audit_dataset, load_dataset_registry
 from crypto_bot.optimization.engine import run_optimization, run_walk_forward
 from crypto_bot.optimization.export import export_optimization_reports
 from crypto_bot.portfolio.account import Account
 from crypto_bot.regime_filter import RegimeFilter, RegimeFilterSettings
 from crypto_bot.risk.manager import RiskManager, RiskSettings
-from crypto_bot.strategy.bollinger_mean_reversion import BollingerMeanReversionStrategy
-from crypto_bot.strategy.donchian_breakout import DonchianBreakoutStrategy
-from crypto_bot.strategy.ema_pullback import EmaPullbackStrategy
-from crypto_bot.strategy.moving_average_cross import MovingAverageCrossStrategy
-from crypto_bot.strategy.rsi_mean_reversion import RsiMeanReversionStrategy
+from crypto_bot.strategy.factory import create_strategy
 from crypto_bot.strategy_readiness import evaluate_strategy_readiness
 from crypto_bot.walk_forward_diagnostics import diagnose_walk_forward
 
@@ -33,6 +30,9 @@ from crypto_bot.walk_forward_diagnostics import diagnose_walk_forward
 BENCHMARK_COLUMNS = [
     "strategy_name",
     "dataset_name",
+    "dataset_id",
+    "raw_sha256",
+    "canonical_sha256",
     "symbol",
     "timeframe",
     "bar_count",
@@ -66,7 +66,7 @@ def run_strategy_benchmark(config_path: str | Path, export_dir: str | Path) -> d
     output_dir = Path(export_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    rows = []
+    rows: list[dict[str, Any]] = []
     for dataset in config["datasets"]:
         data_quality_path = output_dir / f"data_quality_benchmark_{_slug(str(dataset.get('name') or 'dataset'))}_{stamp}.json"
         data_quality = validate_ohlcv_csv(
@@ -80,6 +80,13 @@ def run_strategy_benchmark(config_path: str | Path, export_dir: str | Path) -> d
                 for strategy in config["strategies"]
             )
             continue
+        if dataset.get("_registry_valid") is False:
+            issues = ",".join(str(issue) for issue in dataset.get("_registry_issues", [])) or "unknown"
+            rows.extend(
+                _dataset_registry_error_row(dataset, strategy, data_quality, issues)
+                for strategy in config["strategies"]
+            )
+            continue
         for strategy in config["strategies"]:
             rows.append(_run_one(dataset, strategy, output_dir, stamp, data_quality, data_quality_path))
     rows = sort_benchmark_rows(rows)
@@ -90,6 +97,7 @@ def run_strategy_benchmark(config_path: str | Path, export_dir: str | Path) -> d
     _write_csv(csv_path, rows)
     payload = {
         "generated_at": stamp,
+        "dataset_registry_path": config.get("dataset_registry_path"),
         "rows": rows,
         "matrix": {
             "csv_path": str(matrix_paths["csv_path"]),
@@ -226,6 +234,9 @@ def _empty_row(strategy_name: str, dataset: dict[str, Any], data_quality: DataQu
     return {column: "" for column in BENCHMARK_COLUMNS} | {
         "strategy_name": strategy_name,
         "dataset_name": dataset_name,
+        "dataset_id": str(dataset.get("dataset_id") or ""),
+        "raw_sha256": str(dataset.get("raw_sha256") or ""),
+        "canonical_sha256": str(dataset.get("canonical_sha256") or ""),
         "symbol": str(dataset.get("symbol") or ""),
         "timeframe": str(dataset.get("timeframe") or ""),
         "bar_count": data_quality.bar_count if data_quality else "",
@@ -245,6 +256,19 @@ def _dataset_error_row(
         **_empty_row(str(strategy.get("name") or ""), dataset, data_quality),
         "readiness_conclusion": "error",
         "error": f"data_quality_invalid:{issues}",
+    }
+
+
+def _dataset_registry_error_row(
+    dataset: dict[str, Any],
+    strategy: dict[str, Any],
+    data_quality: DataQualityReport,
+    issues: str,
+) -> dict[str, Any]:
+    return {
+        **_empty_row(str(strategy.get("name") or ""), dataset, data_quality),
+        "readiness_conclusion": "error",
+        "error": f"dataset_registry_invalid:{issues}",
     }
 
 
@@ -282,30 +306,7 @@ def _run_backtest(config: AppConfig, bars, symbol: str):
 
 
 def _strategy_from_config(config: AppConfig):
-    if config.strategy.name == "donchian_breakout":
-        return DonchianBreakoutStrategy(
-            entry_window=config.strategy.entry_window,
-            exit_window=config.strategy.exit_window,
-            atr_window=config.strategy.atr_window,
-            atr_multiplier=config.strategy.atr_multiplier,
-        )
-    if config.strategy.name == "rsi_mean_reversion":
-        return RsiMeanReversionStrategy(
-            rsi_window=config.strategy.rsi_window,
-            buy_threshold=config.strategy.buy_threshold,
-            sell_threshold=config.strategy.sell_threshold,
-        )
-    if config.strategy.name == "bollinger_mean_reversion":
-        return BollingerMeanReversionStrategy(
-            window=config.strategy.window,
-            num_std=config.strategy.num_std,
-        )
-    if config.strategy.name == "ema_pullback":
-        return EmaPullbackStrategy(
-            trend_ema_window=config.strategy.trend_ema_window,
-            pullback_ema_window=config.strategy.pullback_ema_window,
-        )
-    return MovingAverageCrossStrategy(config.strategy.fast_window, config.strategy.slow_window)
+    return create_strategy(config.strategy)
 
 
 def _load_benchmark_config(path: str | Path) -> dict[str, Any]:
@@ -318,7 +319,56 @@ def _load_benchmark_config(path: str | Path) -> dict[str, Any]:
         raise ValueError("benchmark.datasets must contain at least one dataset")
     if not strategies:
         raise ValueError("benchmark.strategies must contain at least one strategy")
-    return {"datasets": datasets, "strategies": strategies}
+    registry_value = benchmark.get("dataset_registry")
+    if registry_value is None:
+        return {"datasets": datasets, "strategies": strategies, "dataset_registry_path": None}
+    if not isinstance(registry_value, str) or not registry_value.strip():
+        raise ValueError("benchmark.dataset_registry must be a non-empty path")
+    registry_path = Path(registry_value)
+    if not registry_path.is_absolute():
+        registry_path = config_path.resolve().parent / registry_path
+    registry = load_dataset_registry(registry_path)
+    resolved_datasets = [_resolve_registry_dataset(reference, registry) for reference in datasets]
+    return {
+        "datasets": resolved_datasets,
+        "strategies": strategies,
+        "dataset_registry_path": str(registry.registry_path),
+    }
+
+
+def _resolve_registry_dataset(reference: object, registry: DatasetRegistry) -> dict[str, Any]:
+    if not isinstance(reference, dict):
+        raise ValueError("benchmark dataset references must be mappings")
+    dataset_id = reference.get("dataset_id")
+    if not isinstance(dataset_id, str) or not dataset_id.strip():
+        raise ValueError("benchmark datasets must declare dataset_id when dataset_registry is configured")
+    entry = registry.get(dataset_id.strip())
+    for field_name, declared_value in (
+        ("symbol", entry.symbol),
+        ("timeframe", entry.timeframe),
+        ("csv_path", entry.declared_path),
+    ):
+        if field_name in reference and str(reference[field_name]) != declared_value:
+            raise ValueError(f"benchmark dataset {dataset_id} conflicts with registry field {field_name}")
+    audit = audit_dataset(entry)
+    registry_issues = list(audit.observed.issues)
+    registry_issues.extend(
+        f"expected_{item['field']}_mismatch"
+        for item in audit.declared_vs_observed["mismatches"]
+    )
+    if audit.canonical_sha256 is None:
+        registry_issues.append("canonical_hash_unavailable")
+    return {
+        "name": str(reference.get("name") or entry.dataset_id),
+        "dataset_id": entry.dataset_id,
+        "symbol": entry.symbol,
+        "timeframe": entry.timeframe,
+        "csv_path": str(entry.resolved_path),
+        "raw_sha256": audit.raw_sha256,
+        "canonical_sha256": audit.canonical_sha256,
+        "_registry_valid": audit.valid,
+        "_registry_issues": registry_issues,
+    }
 
 
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -406,6 +456,9 @@ def _dataset_summary(dataset_name: str, rows: list[dict[str, Any]]) -> dict[str,
     best = sort_benchmark_rows(valid_rows)[0] if valid_rows else None
     return {
         "dataset_name": dataset_name,
+        "dataset_id": dataset_rows[0].get("dataset_id") if dataset_rows else "",
+        "raw_sha256": dataset_rows[0].get("raw_sha256") if dataset_rows else "",
+        "canonical_sha256": dataset_rows[0].get("canonical_sha256") if dataset_rows else "",
         "symbol": dataset_rows[0].get("symbol") if dataset_rows else "",
         "timeframe": dataset_rows[0].get("timeframe") if dataset_rows else "",
         "bar_count": dataset_rows[0].get("bar_count") if dataset_rows else "",

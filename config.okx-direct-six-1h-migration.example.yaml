@@ -1,0 +1,39 @@
+schema_version: 1
+policy_version: 1
+migration_id: okx_direct_six_asset_1h_v1
+source_promotion_sha256: 36739b6fcff8ffa8150b3fdd268150cc7fc0c997d90d9fb028f3f3c096d0c24e
+source_snapshot_received_at: "2026-08-02T15:49:19.356645+00:00"
+anchor_inst_ids:
+  - BTC-USDT
+  - ETH-USDT
+  - SOL-USDT
+existing_direct_dataset_ids:
+  - okx_knc_usdt_1h_frozen
+  - okx_swftc_usdt_1h_frozen
+  - okx_bico_usdt_1h_frozen
+history_start: "2022-01-01T00:00:00+00:00"
+end_open: "2026-08-02T14:00:00+00:00"
+end_policy: floor_source_snapshot_minus_5s_to_1h_then_previous_fully_closed_bar
+timeframe: 1h
+okx_bar: 1H
+bar_duration_ms: 3600000
+limit: 300
+expected_bar_count: 40191
+expected_page_count: 134
+stable_data_root: data/promoted/okx_direct_six_v1/1h
+target_panel_id: okx_btc_eth_sol_knc_swftc_bico_1h_direct_v1
+alignment: inner_exact
+expected_panel:
+  common_first_timestamp: "2022-01-01T00:00:00+00:00"
+  common_last_timestamp: "2026-08-02T14:00:00+00:00"
+  intersection_bar_count: 40191
+  union_bar_count: 40191
+  coverage_rate: 1.0
+claims:
+  universe_kind: current_okx_live_convenience_snapshot
+  membership_source: 2026-08-02_current_live_snapshot
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  delisted_assets_recovered: false
+  profitability_evidence: false
+  strategy_approval: false

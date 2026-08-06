@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-
 import pandas as pd
 
 from crypto_bot.backtest.engine import BacktestEngine, BacktestResult
@@ -13,12 +11,7 @@ from crypto_bot.market.csv_data import load_ohlcv_csv
 from crypto_bot.portfolio.account import Account
 from crypto_bot.regime_filter import RegimeFilter, RegimeFilterSettings
 from crypto_bot.risk.manager import RiskManager, RiskSettings
-from crypto_bot.strategy.base import Strategy
-from crypto_bot.strategy.bollinger_mean_reversion import BollingerMeanReversionStrategy
-from crypto_bot.strategy.donchian_breakout import DonchianBreakoutStrategy
-from crypto_bot.strategy.ema_pullback import EmaPullbackStrategy
-from crypto_bot.strategy.moving_average_cross import MovingAverageCrossStrategy
-from crypto_bot.strategy.rsi_mean_reversion import RsiMeanReversionStrategy
+from crypto_bot.strategy.factory import create_strategy_from_params
 
 
 @dataclass(frozen=True)
@@ -372,45 +365,13 @@ def _run_backtest_for_params(
     params: dict,
 ) -> BacktestResult:
     engine = BacktestEngine(
-        strategy=_strategy_from_params(strategy_name, params),
+        strategy=create_strategy_from_params(strategy_name, params),
         risk_manager=RiskManager(RiskSettings(**config.risk.__dict__)),
         execution_engine=PaperExecutionEngine(config.execution.fee_rate, config.execution.slippage_bps),
         account=Account(config.initial_cash),
         regime_filter=RegimeFilter(RegimeFilterSettings(**config.regime_filter.__dict__)),
     )
     return engine.run(symbol, bars)
-
-
-def _strategy_from_params(strategy_name: str, params: dict) -> Strategy:
-    if strategy_name == "moving_average_cross":
-        return MovingAverageCrossStrategy(
-            fast_window=int(params["fast_window"]),
-            slow_window=int(params["slow_window"]),
-        )
-    if strategy_name == "donchian_breakout":
-        return DonchianBreakoutStrategy(
-            entry_window=int(params["entry_window"]),
-            exit_window=int(params["exit_window"]),
-            atr_window=int(params["atr_window"]),
-            atr_multiplier=float(params["atr_multiplier"]),
-        )
-    if strategy_name == "rsi_mean_reversion":
-        return RsiMeanReversionStrategy(
-            rsi_window=int(params["rsi_window"]),
-            buy_threshold=float(params["buy_threshold"]),
-            sell_threshold=float(params["sell_threshold"]),
-        )
-    if strategy_name == "bollinger_mean_reversion":
-        return BollingerMeanReversionStrategy(
-            window=int(params["window"]),
-            num_std=float(params["num_std"]),
-        )
-    if strategy_name == "ema_pullback":
-        return EmaPullbackStrategy(
-            trend_ema_window=int(params["trend_ema_window"]),
-            pullback_ema_window=int(params["pullback_ema_window"]),
-        )
-    raise ValueError(f"Unsupported strategy: {strategy_name}")
 
 
 def _params_from_row(row: OptimizationRow) -> dict:

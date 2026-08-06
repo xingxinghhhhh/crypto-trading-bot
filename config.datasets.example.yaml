@@ -1,0 +1,119 @@
+schema_version: 1
+
+# This registry records evidence, not assumptions. `partial` means some lineage is
+# preserved but the canonical file cannot be attributed to one provider end-to-end.
+datasets:
+  - dataset_id: btc_usdt_1h_v1
+    symbol: BTC/USDT
+    timeframe: 1h
+    path: data/BTC_USDT_1h.csv
+    source:
+      status: partial
+      providers:
+        - binance_data_vision
+        - okx_public_config
+      evidence:
+        - downloads/BTCUSDT-1h-2024-2026-05-15-binance-klines.csv
+        - config.history.example.yaml
+      note: Binance source files and an OKX append/import config both exist; end-to-end provenance is not proven.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 20784
+      first_timestamp: "2024-01-01T00:00:00+00:00"
+      last_timestamp: "2026-05-15T23:00:00+00:00"
+      raw_sha256: 4246ac2b59de6de5b824f4648a305b960f38cec2916a3c9500a761e632eb8d1a
+      canonical_sha256: 2fed47362c696dbf5f2069d84683d8ef58b8150c94edc3b6f06f445d54825aaf
+
+  - dataset_id: eth_usdt_1h_v1
+    symbol: ETH/USDT
+    timeframe: 1h
+    path: data/ETH_USDT_1h.csv
+    source:
+      status: unknown
+      evidence:
+        - docs/REPOSITORY_AUDIT_2026-07-21.md
+      note: The repository audit verifies the canonical file, but no provider artifact is preserved.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 20424
+      first_timestamp: "2024-01-01T00:00:00+00:00"
+      last_timestamp: "2026-04-30T23:00:00+00:00"
+      raw_sha256: 3f031f864c07634adb5f95797965bdc40fc765cd8e8d5a6a657d8945882874da
+      canonical_sha256: 2c192c0e6d4fd2a82a8e71f4f9e30ca345ee776554181021e3c0f129c004ca30
+
+  - dataset_id: sol_usdt_1h_v1
+    symbol: SOL/USDT
+    timeframe: 1h
+    path: data/SOL_USDT_1h.csv
+    source:
+      status: unknown
+      evidence:
+        - docs/REPOSITORY_AUDIT_2026-07-21.md
+      note: The repository audit verifies the canonical file, but no provider artifact is preserved.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 20424
+      first_timestamp: "2024-01-01T00:00:00+00:00"
+      last_timestamp: "2026-04-30T23:00:00+00:00"
+      raw_sha256: 085016598abb1e95f25a884c8ddedc7e6bcc724e682d301aa509675158450c4a
+      canonical_sha256: 5939a285e26e373c9414dd9a1afb0e1ee2f61453818d8b8ae6d24bb4a61a0786
+
+  - dataset_id: btc_usdt_4h_v1
+    symbol: BTC/USDT
+    timeframe: 4h
+    path: data/BTC_USDT_4h.csv
+    source:
+      status: partial
+      evidence:
+        - data/archive/BTC_USDT_4h_20260520T083310Z.csv
+        - docs/REPOSITORY_AUDIT_2026-07-21.md
+      note: Intermediate repository versions are preserved, but the upstream provider is not proven.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 13574
+      first_timestamp: "2020-02-19T16:00:00+00:00"
+      last_timestamp: "2026-04-30T20:00:00+00:00"
+      raw_sha256: 0fa7d9360e7783c0bdca32c9885281bf6d45f7e5b9ffda1c4600f056f0f2594d
+      canonical_sha256: 5f7f7e0a9207203be184c09716b25573f0bd789fc8ecaa4792d38fcc9f972922
+
+  - dataset_id: eth_usdt_4h_v1
+    symbol: ETH/USDT
+    timeframe: 4h
+    path: data/ETH_USDT_4h.csv
+    source:
+      status: partial
+      evidence:
+        - data/archive/ETH_USDT_4h_20260520T083310Z.csv
+        - docs/REPOSITORY_AUDIT_2026-07-21.md
+      note: Intermediate repository versions are preserved, but the upstream provider is not proven.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 13574
+      first_timestamp: "2020-02-19T16:00:00+00:00"
+      last_timestamp: "2026-04-30T20:00:00+00:00"
+      raw_sha256: d8f653697094a9e5f2ba815f31a606323d06aefcbe5a4f7935a12a24075d3423
+      canonical_sha256: 3b51f4e4f988c82593b654f53077da7549bb0d72fa8c3b31978f2b457c1228d9
+
+  - dataset_id: sol_usdt_4h_v1
+    symbol: SOL/USDT
+    timeframe: 4h
+    path: data/SOL_USDT_4h.csv
+    source:
+      status: partial
+      evidence:
+        - data/archive/SOL_USDT_4h_20260520T083150Z.csv
+        - docs/REPOSITORY_AUDIT_2026-07-21.md
+      note: Intermediate repository versions are preserved, but the upstream provider is not proven.
+    quality:
+      validator: validate_ohlcv_csv
+    expected:
+      bar_count: 12533
+      first_timestamp: "2020-08-11T04:00:00+00:00"
+      last_timestamp: "2026-04-30T20:00:00+00:00"
+      raw_sha256: 0cceda669d5cd643ca652feee406ca68a9cf00a6f26e4ec3d1d2f905141a4286
+      canonical_sha256: 1f46774d09eb212da546ef0f0a6f6b6692a53584452a42843016810d1896bd1d

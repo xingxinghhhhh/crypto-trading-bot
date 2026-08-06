@@ -1,0 +1,20 @@
+schema_version: 1
+
+factors:
+  - family: momentum
+    window: 4
+  - family: momentum
+    window: 12
+  - family: mean_reversion
+    window: 20
+  - family: low_volatility
+    window: 20
+  - family: volume_momentum
+    window: 20
+  - family: trend_quality
+    window: 20
+
+horizons:
+  - 1
+  - 4
+  - 16

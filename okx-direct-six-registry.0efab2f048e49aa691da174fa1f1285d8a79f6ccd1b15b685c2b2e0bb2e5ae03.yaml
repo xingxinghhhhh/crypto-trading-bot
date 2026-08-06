@@ -1,0 +1,110 @@
+schema_version: 1
+datasets:
+- dataset_id: okx_btc_usdt_1h_direct_frozen
+  symbol: BTC/USDT
+  timeframe: 1h
+  path: data/promoted/okx_direct_six_v1/1h/okx_btc_usdt_1h_direct_frozen.37d3af3a57ca833b84573ef3f91c453fd517320f6d6e90c06199432264cc9a9b.csv
+  source:
+    status: verified
+    provider: okx_public_history_candles
+    evidence:
+    - data/promoted/okx_direct_six_v1/1h/lineage.okx_btc_usdt_1h_direct_frozen.9f7e5c62809fe577efa954b5248a4a2501c9d499a999a356aadd405e359371dd.json
+    timestamp_semantics: verified_open_time
+  quality:
+    validator: validate_ohlcv_csv
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: 37d3af3a57ca833b84573ef3f91c453fd517320f6d6e90c06199432264cc9a9b
+    canonical_sha256: 37d3af3a57ca833b84573ef3f91c453fd517320f6d6e90c06199432264cc9a9b
+- dataset_id: okx_eth_usdt_1h_direct_frozen
+  symbol: ETH/USDT
+  timeframe: 1h
+  path: data/promoted/okx_direct_six_v1/1h/okx_eth_usdt_1h_direct_frozen.90983727ba098070a6c798725790d4907ef7d9e8eb6d7f59510f202bae49a036.csv
+  source:
+    status: verified
+    provider: okx_public_history_candles
+    evidence:
+    - data/promoted/okx_direct_six_v1/1h/lineage.okx_eth_usdt_1h_direct_frozen.2a176bfd05f5d45dac8b45d14233cf86eed5d2ff6ca87c65f390310e4a008000.json
+    timestamp_semantics: verified_open_time
+  quality:
+    validator: validate_ohlcv_csv
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: 90983727ba098070a6c798725790d4907ef7d9e8eb6d7f59510f202bae49a036
+    canonical_sha256: 90983727ba098070a6c798725790d4907ef7d9e8eb6d7f59510f202bae49a036
+- dataset_id: okx_sol_usdt_1h_direct_frozen
+  symbol: SOL/USDT
+  timeframe: 1h
+  path: data/promoted/okx_direct_six_v1/1h/okx_sol_usdt_1h_direct_frozen.0df16980c25528c82f6e5589619c04b93992b18f30801537a959b53389f381b7.csv
+  source:
+    status: verified
+    provider: okx_public_history_candles
+    evidence:
+    - data/promoted/okx_direct_six_v1/1h/lineage.okx_sol_usdt_1h_direct_frozen.ed44104297a07d8dc92fa9d6f61a791e7cc886c1b9b0d00cc7f25bc5d0ac5d5b.json
+    timestamp_semantics: verified_open_time
+  quality:
+    validator: validate_ohlcv_csv
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: 0df16980c25528c82f6e5589619c04b93992b18f30801537a959b53389f381b7
+    canonical_sha256: 0df16980c25528c82f6e5589619c04b93992b18f30801537a959b53389f381b7
+- dataset_id: okx_knc_usdt_1h_frozen
+  path: data/promoted/okx_convenience_v1/1h/okx_knc_usdt_1h_frozen.e8cc7e87078afeba7d372bf901c3c31b51dccd96a9cb9cfa3eefb5af5be7e27f.csv
+  symbol: KNC/USDT
+  timeframe: 1h
+  source:
+    status: verified
+    evidence:
+    - data/promoted/okx_convenience_v1/1h/lineage.okx_knc_usdt_1h_frozen.d597ea406a5e5f4599f2cf3d21b5ae671056cdd9ae374a0e608ace614da03ec2.json
+    provider: okx_public_history_candles
+    timestamp_semantics: verified_open_time
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: e8cc7e87078afeba7d372bf901c3c31b51dccd96a9cb9cfa3eefb5af5be7e27f
+    canonical_sha256: 650ea225d3ad7f28ac7aba842dba12df7f3c2a8df4127aaec7a316c2c7e14526
+  quality:
+    validator: validate_ohlcv_csv
+- dataset_id: okx_swftc_usdt_1h_frozen
+  path: data/promoted/okx_convenience_v1/1h/okx_swftc_usdt_1h_frozen.51f4347d7b9f11d84dbdf7aa060bb39015acaa8d12f7d46d9aca7ca01bb2c78c.csv
+  symbol: SWFTC/USDT
+  timeframe: 1h
+  source:
+    status: verified
+    evidence:
+    - data/promoted/okx_convenience_v1/1h/lineage.okx_swftc_usdt_1h_frozen.b656467783f5302b450ef4988ee589281b048d09126bc56fa12db89ea341871c.json
+    provider: okx_public_history_candles
+    timestamp_semantics: verified_open_time
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: 51f4347d7b9f11d84dbdf7aa060bb39015acaa8d12f7d46d9aca7ca01bb2c78c
+    canonical_sha256: 9586d251f953b00e85f2966bad031b1fe596eb29e839cd3b384950cc22487cbe
+  quality:
+    validator: validate_ohlcv_csv
+- dataset_id: okx_bico_usdt_1h_frozen
+  path: data/promoted/okx_convenience_v1/1h/okx_bico_usdt_1h_frozen.2dac269642ec23f5dbd170ada3e0a7951ad0aa1e06404a8f29b2deb6108c9bc0.csv
+  symbol: BICO/USDT
+  timeframe: 1h
+  source:
+    status: verified
+    evidence:
+    - data/promoted/okx_convenience_v1/1h/lineage.okx_bico_usdt_1h_frozen.2ae63266a13ea192f11525b2bab1adb904686dec4b0ca693d493665bf41f427b.json
+    provider: okx_public_history_candles
+    timestamp_semantics: verified_open_time
+  expected:
+    bar_count: 40191
+    first_timestamp: '2022-01-01T00:00:00+00:00'
+    last_timestamp: '2026-08-02T14:00:00+00:00'
+    raw_sha256: 2dac269642ec23f5dbd170ada3e0a7951ad0aa1e06404a8f29b2deb6108c9bc0
+    canonical_sha256: 2dac269642ec23f5dbd170ada3e0a7951ad0aa1e06404a8f29b2deb6108c9bc0
+  quality:
+    validator: validate_ohlcv_csv

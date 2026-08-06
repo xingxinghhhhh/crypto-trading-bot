@@ -1,0 +1,13 @@
+schema_version: 1
+mechanism_policy_id: long_only_spot_top2_equal_weight_v1
+portfolio_type: long_only_spot
+gross_exposure: 1.0
+net_exposure: 1.0
+leverage: 1.0
+top_k: 2
+weighting: equal_weight
+rebalance_every_bars: 1
+direction_policy: evaluate_both_without_selection
+signal_completion_delay_bars: 1
+execution_delay_after_completion_bars: 1
+insufficient_assets_policy: all_cash

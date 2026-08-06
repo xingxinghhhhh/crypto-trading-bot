@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "provider": "okx",
+  "market_type": "spot",
+  "official_url": "https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks",
+  "endpoint": "https://www.okx.com/api/v5/market/candles",
+  "http_method": "GET",
+  "authentication": "none_public_market_data",
+  "response_shape": [
+    "ts",
+    "o",
+    "h",
+    "l",
+    "c",
+    "vol",
+    "volCcy",
+    "volCcyQuote",
+    "confirm"
+  ],
+  "timestamp_field": "ts",
+  "timestamp_unit": "unix_milliseconds",
+  "timestamp_meaning": "bar_open_time",
+  "confirm_meaning": {
+    "0": "uncompleted",
+    "1": "completed"
+  },
+  "retrieved_on": "2026-08-02",
+  "note": "Repository evidence record derived from the official OKX API contract; the live public probe is required independently."
+}

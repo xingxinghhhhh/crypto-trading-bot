@@ -4,6 +4,8 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage*
+coverage.xml
 .env
 *.db
 *.sqlite
@@ -11,11 +13,17 @@ downloads/
 data/*.csv
 !data/sample_ohlcv.csv
 data/archive/
+/data/promoted/
+/promoted-registry.*.yaml
+/promoted-panels.*.yaml
+/promoted-registry-1h.*.yaml
+/promoted-panels-1h.*.yaml
 reports/*.csv
 reports/*.html
 reports/*.json
 reports/*.log
 reports/*.md
+/reports/
 logs/
 tmp/
 dist/

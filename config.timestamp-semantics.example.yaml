@@ -1,0 +1,99 @@
+schema_version: 1
+policy_version: 1
+
+producers:
+  - producer_id: okx_public_candles_v1
+    provider: okx
+    market_type: spot
+    timestamp_field: ts
+    claimed_meaning: bar_open_time
+    requires_probe: true
+    contract_artifact: docs/evidence/okx_candles_contract_v1.json
+    contract_sha256: 485161ed89c0e2ad025e8950924e62c7fd6f9cddfcdf172c5d89c607e94ddadb
+
+  - producer_id: binance_data_vision_unverified_v1
+    provider: binance_data_vision
+    market_type: spot
+    timestamp_field: unverified
+    claimed_meaning: unverified
+    requires_probe: false
+
+  - producer_id: repository_unattributed_v1
+    provider: unattributed
+    market_type: spot
+    timestamp_field: unverified
+    claimed_meaning: unverified
+    requires_probe: false
+
+datasets:
+  - dataset_id: btc_usdt_1h_v1
+    lineage_coverage: partial
+    evidence:
+      - evidence_id: btc_1h_binance_archive
+        producer_id: binance_data_vision_unverified_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: downloads/BTCUSDT-1h-2024-2026-05-15-binance-klines.csv
+        artifact_sha256: bbb9e0ca2c5b3cc047a7841379ebff6c8d9083fd347bfbb2d017eec778dec724
+      - evidence_id: btc_1h_okx_append_config
+        producer_id: okx_public_candles_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: config.history.example.yaml
+        artifact_sha256: 5f985a126a951b73978d8c4fcf2dcb36a59d015bad8e82650f818981cb30823e
+
+  - dataset_id: eth_usdt_1h_v1
+    lineage_coverage: none
+    evidence: []
+
+  - dataset_id: sol_usdt_1h_v1
+    lineage_coverage: none
+    evidence: []
+
+  - dataset_id: btc_usdt_4h_v1
+    lineage_coverage: partial
+    evidence:
+      - evidence_id: btc_4h_intermediate_archive
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: data/archive/BTC_USDT_4h_20260520T083310Z.csv
+        artifact_sha256: e56553d5f43ee6ae7c1a5bab20339ed4616c867f5620cd6be462f012307c4126
+      - evidence_id: btc_4h_repository_audit
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: docs/REPOSITORY_AUDIT_2026-07-21.md
+        artifact_sha256: e5647e636daf3dfd8db1e193ba4e62852a66c60613aa8369e8516857b84a4876
+
+  - dataset_id: eth_usdt_4h_v1
+    lineage_coverage: partial
+    evidence:
+      - evidence_id: eth_4h_intermediate_archive
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: data/archive/ETH_USDT_4h_20260520T083310Z.csv
+        artifact_sha256: 74004a456b7d1b474f1c48704cf2c5bfa0f3e02516843fdc40dc465142e4717a
+      - evidence_id: eth_4h_repository_audit
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: docs/REPOSITORY_AUDIT_2026-07-21.md
+        artifact_sha256: e5647e636daf3dfd8db1e193ba4e62852a66c60613aa8369e8516857b84a4876
+
+  - dataset_id: sol_usdt_4h_v1
+    lineage_coverage: partial
+    evidence:
+      - evidence_id: sol_4h_intermediate_archive
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: data/archive/SOL_USDT_4h_20260520T083150Z.csv
+        artifact_sha256: 5d7a89c316cdf23811fbb391040d3b6fa8c9fcc948de1e32f9a2cb51eaafc513
+      - evidence_id: sol_4h_repository_audit
+        producer_id: repository_unattributed_v1
+        covered_from: null
+        covered_to: null
+        repo_relative_artifact: docs/REPOSITORY_AUDIT_2026-07-21.md
+        artifact_sha256: e5647e636daf3dfd8db1e193ba4e62852a66c60613aa8369e8516857b84a4876

@@ -1,0 +1,16 @@
+schema_version: 1
+
+panels:
+  - panel_id: btc_eth_sol_1h_v1
+    dataset_ids:
+      - btc_usdt_1h_v1
+      - eth_usdt_1h_v1
+      - sol_usdt_1h_v1
+    alignment: inner_exact
+
+  - panel_id: btc_eth_sol_4h_v1
+    dataset_ids:
+      - btc_usdt_4h_v1
+      - eth_usdt_4h_v1
+      - sol_usdt_4h_v1
+    alignment: inner_exact

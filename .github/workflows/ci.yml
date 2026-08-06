@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install -U pip && python -m pip install -e ".[dev]"
+
+      - name: Safety source scan
+        run: python -m pytest tests/test_source_safety_scan.py tests/test_live_trading_guard.py -q
+
+      - name: Ruff
+        run: python -m ruff check src tests
+
+      - name: Mypy safety and research core
+        run: >-
+          python -m mypy
+          src/crypto_bot/config.py
+          src/crypto_bot/cross_sectional_ic_calibration.py
+          src/crypto_bot/cross_sectional_oos_stability.py
+          src/crypto_bot/cross_sectional_portfolio_mechanism.py
+          src/crypto_bot/cross_sectional_factor_research.py
+          src/crypto_bot/errors.py
+          src/crypto_bot/execution
+          src/crypto_bot/factors.py
+          src/crypto_bot/factor_research.py
+          src/crypto_bot/market/archive_replay.py
+          src/crypto_bot/market/dataset_panel.py
+          src/crypto_bot/market/dataset_promotion.py
+          src/crypto_bot/market/dataset_registry.py
+          src/crypto_bot/market/okx_universe_intake.py
+          src/crypto_bot/market/okx_universe_history_extension.py
+          src/crypto_bot/market/okx_direct_six_asset_migration.py
+          src/crypto_bot/market/legacy_timestamp_mapping_audit.py
+          src/crypto_bot/market/timestamp_semantics.py
+          src/crypto_bot/portfolio
+          src/crypto_bot/promoted_cross_sectional_oos_evidence.py
+          src/crypto_bot/promoted_cross_sectional_research.py
+          src/crypto_bot/replay.py
+          src/crypto_bot/risk
+          src/crypto_bot/storage
+          src/crypto_bot/strategy_benchmark.py
+
+      - name: Tests and coverage
+        run: python -m pytest tests -q --cov=crypto_bot --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-python-3.11
+          path: coverage.xml

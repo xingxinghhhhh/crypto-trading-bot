@@ -1,0 +1,47 @@
+schema_version: 1
+promotion_id: okx_convenience_six_asset_4h_v1
+base_panel_id: btc_eth_sol_4h_v1
+target_panel_id: btc_eth_sol_knc_swftc_bico_4h_v1
+stable_data_root: data/promoted/okx_convenience_v1
+alignment: inner_exact
+convenience_policy_version: current_okx_live_convenience_snapshot_v1
+
+expected_candidates:
+  - inst_id: KNC-USDT
+    dataset_id: okx_knc_usdt_4h_b96aa6011796
+  - inst_id: SWFTC-USDT
+    dataset_id: okx_swftc_usdt_4h_b96aa6011796
+  - inst_id: BICO-USDT
+    dataset_id: okx_bico_usdt_4h_b96aa6011796
+
+expected_panel:
+  union_bar_count: 14135
+  intersection_bar_count: 9486
+  coverage_rate: 0.67110010612
+  common_first_timestamp: "2022-01-01T00:00:00+00:00"
+  common_last_timestamp: "2026-04-30T20:00:00+00:00"
+  boundary_drops:
+    btc_usdt_4h_v1:
+      before_common_start: 4088
+      after_common_end: 0
+      missing_inside_common_window: 0
+    eth_usdt_4h_v1:
+      before_common_start: 4088
+      after_common_end: 0
+      missing_inside_common_window: 0
+    sol_usdt_4h_v1:
+      before_common_start: 3047
+      after_common_end: 0
+      missing_inside_common_window: 0
+    okx_knc_usdt_4h_b96aa6011796:
+      before_common_start: 0
+      after_common_end: 561
+      missing_inside_common_window: 0
+    okx_swftc_usdt_4h_b96aa6011796:
+      before_common_start: 0
+      after_common_end: 561
+      missing_inside_common_window: 0
+    okx_bico_usdt_4h_b96aa6011796:
+      before_common_start: 0
+      after_common_end: 561
+      missing_inside_common_window: 0
