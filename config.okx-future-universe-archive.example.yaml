@@ -1,0 +1,33 @@
+schema_version: 1
+policy_id: okx_future_only_membership_archive_v1
+baseline_capture_sha256: b96aa6011796c8e2f1e0d7826c0f95b9f5be15fbdf2cf38862493f3fc75da451
+baseline_capture_report_sha256: f193b1f999843b5903d0934b6e6c3f6d758b3128101b9fa4bc1516a2bd4fea3d
+baseline_snapshot_received_at: "2026-08-02T15:49:19.356645+00:00"
+eligibility_policy_file: config.okx-universe-intake.example.yaml
+eligibility_policy_file_sha256: 6affbc2714a723562402cae7a19dd9a7332884c29370070e1177a3ae5d304a84
+eligibility_policy_id: frozen_okx_universe_intake_v1
+tracked_inst_ids:
+  - BTC-USDT
+  - ETH-USDT
+  - SOL-USDT
+  - KNC-USDT
+  - SWFTC-USDT
+  - BICO-USDT
+transition_policy: adjacent_snapshot_diff
+exit_signal_effective_at: current_snapshot_received_at
+historical_retroactive_exit: false
+automatic_replacement: false
+carry_membership_after_ineligibility: false
+replacement_policy: no_automatic_replacement
+historical_backfill_prohibited: true
+universe_kind: current_okx_live_convenience_snapshot
+historical_point_in_time_membership: false
+survivorship_bias_resolved: false
+future_only_evidence: true
+claims:
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  historical_delisted_assets_recovered: false
+  profitability_evidence: false
+  pnl_computation_authorized: false
+  readiness_changed: false

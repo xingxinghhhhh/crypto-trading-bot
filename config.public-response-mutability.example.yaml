@@ -1,0 +1,40 @@
+schema_version: 1
+policy_version: 1
+policy_id: okx_public_response_mutability_v1
+endpoint: https://www.okx.com/api/v5/market/history-candles
+inst_ids:
+  - BTC-USDT
+  - ETH-USDT
+  - SOL-USDT
+timeframe: 1h
+okx_bar: 1H
+history_start: "2022-01-01T00:00:00+00:00"
+end_open: "2026-08-02T14:00:00+00:00"
+expected_bar_count: 40191
+expected_page_count: 134
+fields:
+  - ts
+  - o
+  - h
+  - l
+  - c
+  - vol
+  - volCcy
+  - volCcyQuote
+  - confirm
+baseline_migration_sha256: 67fb338366f01f6ac03e0280f374fb8c6c5578029d7756286d5315ac1cc3b698
+baseline_panel_sha256: 59cb360a26c373c69407dac2f495b90fd3a848c7e364f464b2a0e295429c8d28
+policy:
+  raw_capture_is_immutable: true
+  offline_replay_deterministic: true
+  network_recapture_byte_determinism_required: false
+  historical_capture_versions_are_distinct: true
+  baseline_migration_remains_pinned: true
+  does_not_replace_baseline: true
+  does_not_modify_existing_migration: true
+  does_not_modify_existing_panel: true
+claims:
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  profitability_evidence: false
+  readiness_changed: false

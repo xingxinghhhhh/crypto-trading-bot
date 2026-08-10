@@ -1,0 +1,43 @@
+schema_version: 1
+policy_id: prospective_direct_1h_closed_epoch_extension_v1
+membership_gate_report: reports/prospective-membership-bar-gate/prospective-membership-bar-gate.737e3da3a1e2db42b87709a23bc5f754bab2ae2a38af36210b28282cfb3d9f48.json
+membership_gate_sha256: 737e3da3a1e2db42b87709a23bc5f754bab2ae2a38af36210b28282cfb3d9f48
+membership_gate_marker_sha256: 1d3a38e9fb1d8b1f1b32d31d866ae6bf2f02ad4f6eb25cf10a4ff5daa533a0e2
+migration_report: reports/okx-direct-six-asset-1h-migration/okx-direct-six-migration.67fb338366f01f6ac03e0280f374fb8c6c5578029d7756286d5315ac1cc3b698.json
+migration_sha256: 67fb338366f01f6ac03e0280f374fb8c6c5578029d7756286d5315ac1cc3b698
+migration_report_sha256: 33374e95f13fabff61a4611fcbb44b46c027b6be271ff1975b71b772ea3376e6
+execution_mapping_sha256: 48df5c8d1d8f2ee76e45f85920ded6ce37dc25422a14e1b54626668f8aec9ddb
+tracked_inst_ids:
+  - BTC-USDT
+  - ETH-USDT
+  - SOL-USDT
+  - KNC-USDT
+  - SWFTC-USDT
+  - BICO-USDT
+bar: 1H
+bar_duration_ms: 3600000
+limit: 300
+required_confirm: "1"
+append_start_policy: validated_baseline_tail_plus_one_bar
+append_end_policy: validated_membership_gate_last_execution_anchor
+canonical_window_only: true
+mapping_policy: exact_timestamp_no_fill
+baseline_replacement_prohibited: true
+network_recapture_byte_determinism_required: false
+execution_anchor_open_authorized: true
+execution_bar_high_authorized_at_open: false
+execution_bar_low_authorized_at_open: false
+execution_bar_close_authorized_at_open: false
+execution_bar_volume_authorized_at_open: false
+raw_capture_is_immutable: true
+offline_replay_deterministic: true
+prospective_market_data_version_pinned: true
+pnl_computation_authorized: false
+readiness_changed: false
+claims:
+  future_only_membership_evidence: true
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  profitability_evidence: false
+  pnl_computation_authorized: false
+  readiness_changed: false

@@ -58,6 +58,88 @@ from crypto_bot.market.okx_direct_six_asset_migration import (
     format_okx_direct_six_asset_1h_migration,
     freeze_okx_direct_six_asset_1h_panel,
 )
+from crypto_bot.market.public_response_mutability import (
+    audit_okx_public_response_mutability,
+    format_public_response_mutability,
+)
+from crypto_bot.market.execution_cost_evidence import (
+    freeze_execution_cost_evidence,
+    format_execution_cost_evidence,
+)
+from crypto_bot.market.okx_future_universe_archive import (
+    audit_okx_future_universe_transition,
+    capture_okx_future_universe_snapshot,
+    format_future_universe_result,
+)
+from crypto_bot.market.prospective_membership_bar_gate import (
+    format_membership_bar_gate_result,
+    freeze_prospective_membership_bar_gate,
+)
+from crypto_bot.market.prospective_direct_1h_extension import (
+    audit_prospective_direct_1h_extension,
+    capture_prospective_direct_1h_extension,
+    format_prospective_direct_result,
+)
+from crypto_bot.market.prospective_direct_1h_segment_chain import (
+    format_segment_chain_result,
+    freeze_prospective_direct_1h_segment_chain,
+)
+from crypto_bot.market.prospective_epoch_capture_admission import (
+    format_capture_admission_result,
+    freeze_prospective_epoch_capture_admission,
+)
+from crypto_bot.market.prospective_capture_attempt_journal import (
+    format_capture_attempt_journal_result,
+    freeze_prospective_capture_attempt_journal,
+)
+from crypto_bot.market.prospective_capture_attempt_receipt_chain import (
+    audit_prospective_capture_attempt_receipt_chain,
+    format_receipt_chain_result,
+)
+from crypto_bot.market.prospective_capture_attempt_evidence_adapter import (
+    format_receipt_materialization_result,
+    materialize_prospective_capture_attempt_receipt,
+)
+from crypto_bot.market.direct_execution_mapping_audit import (
+    audit_okx_direct_six_1h_execution_mapping,
+    format_direct_execution_mapping_audit,
+)
+from crypto_bot.cross_sectional_variant_preregistration import (
+    freeze_cross_sectional_variant_preregistration,
+    format_variant_preregistration,
+)
+from crypto_bot.prospective_portfolio_ledger import (
+    build_prospective_portfolio_ledger,
+    format_prospective_portfolio_ledger,
+)
+from crypto_bot.prospective_economic_accounting_contract import (
+    format_prospective_economic_accounting_contract,
+    freeze_prospective_economic_accounting_contract,
+)
+from crypto_bot.market.spread_application_semantics import (
+    format_spread_application_semantics,
+    freeze_spread_application_semantics,
+)
+from crypto_bot.prospective_economic_cost_scenario_contract import (
+    format_prospective_economic_cost_scenarios,
+    freeze_prospective_economic_cost_scenarios,
+)
+from crypto_bot.prospective_economic_readiness_gate import (
+    audit_prospective_economic_readiness,
+    format_prospective_economic_readiness,
+)
+from crypto_bot.prospective_economic_sample_maturity_gate import (
+    audit_prospective_economic_sample_maturity,
+    format_prospective_economic_sample_maturity,
+)
+from crypto_bot.prospective_epoch_accumulation_policy import (
+    format_prospective_epoch_accumulation_policy,
+    freeze_prospective_epoch_accumulation_policy,
+)
+from crypto_bot.prospective_epoch_assembly_state_machine import (
+    format_epoch_assembly_result,
+    freeze_prospective_epoch_assembly_state_machine,
+)
 from crypto_bot.market.okx_universe_history_extension import (
     capture_okx_frozen_universe_1h_history,
     format_frozen_universe_1h_capture,
@@ -352,6 +434,276 @@ def main() -> None:
         "--output-dir", default="reports/okx-direct-six-asset-1h-migration"
     )
 
+    mutability_parser = subparsers.add_parser(
+        "audit-okx-public-response-mutability"
+    )
+    mutability_parser.add_argument("--baseline-capture", required=True)
+    mutability_parser.add_argument("--comparison-capture", required=True)
+    mutability_parser.add_argument(
+        "--policy", default="config.public-response-mutability.example.yaml"
+    )
+    mutability_parser.add_argument(
+        "--output-dir", default="reports/okx-public-response-mutability"
+    )
+
+    execution_mapping_parser = subparsers.add_parser(
+        "audit-okx-direct-six-1h-execution-mapping"
+    )
+    execution_mapping_parser.add_argument("--migration-report", required=True)
+    execution_mapping_parser.add_argument("--mutability-report", required=True)
+    execution_mapping_parser.add_argument(
+        "--policy", default="config.okx-direct-six-1h-execution-mapping.example.yaml"
+    )
+    execution_mapping_parser.add_argument(
+        "--output-dir", default="reports/okx-direct-six-1h-execution-mapping"
+    )
+
+    variant_preregistration_parser = subparsers.add_parser(
+        "freeze-cross-sectional-variant-preregistration"
+    )
+    variant_preregistration_parser.add_argument("--mechanism-report", required=True)
+    variant_preregistration_parser.add_argument("--execution-mapping-report", required=True)
+    variant_preregistration_parser.add_argument(
+        "--config", default="config.cross-sectional-variant-preregistration.example.yaml"
+    )
+    variant_preregistration_parser.add_argument(
+        "--output-dir", default="reports/cross-sectional-variant-preregistration"
+    )
+
+    execution_cost_parser = subparsers.add_parser("freeze-execution-cost-evidence")
+    execution_cost_parser.add_argument("--preregistration-report", required=True)
+    execution_cost_parser.add_argument("--execution-mapping-report", required=True)
+    execution_cost_parser.add_argument(
+        "--evidence-config", default="config.execution-cost-evidence.example.yaml"
+    )
+    execution_cost_parser.add_argument(
+        "--output-dir", default="reports/execution-cost-evidence"
+    )
+
+    future_snapshot_parser = subparsers.add_parser(
+        "capture-okx-future-universe-snapshot"
+    )
+    future_snapshot_parser.add_argument("--baseline-universe-report", required=True)
+    future_snapshot_parser.add_argument(
+        "--archive-config", default="config.okx-future-universe-archive.example.yaml"
+    )
+    future_snapshot_parser.add_argument(
+        "--output-dir", default="reports/okx-future-universe-snapshot"
+    )
+
+    future_transition_parser = subparsers.add_parser(
+        "audit-okx-future-universe-transition"
+    )
+    future_transition_parser.add_argument("--previous-snapshot", required=True)
+    future_transition_parser.add_argument("--current-snapshot", required=True)
+    future_transition_parser.add_argument(
+        "--archive-config", default="config.okx-future-universe-archive.example.yaml"
+    )
+    future_transition_parser.add_argument(
+        "--output-dir", default="reports/okx-future-universe-transition"
+    )
+
+    membership_gate_parser = subparsers.add_parser(
+        "freeze-prospective-membership-bar-gate"
+    )
+    membership_gate_parser.add_argument("--transition-report", required=True)
+    membership_gate_parser.add_argument("--execution-mapping-report", required=True)
+    membership_gate_parser.add_argument(
+        "--policy", default="config.prospective-membership-bar-gate.example.yaml"
+    )
+    membership_gate_parser.add_argument(
+        "--output-dir", default="reports/prospective-membership-bar-gate"
+    )
+
+    prospective_direct_capture_parser = subparsers.add_parser(
+        "capture-okx-prospective-direct-1h-extension"
+    )
+    prospective_direct_capture_parser.add_argument("--membership-gate", required=True)
+    prospective_direct_capture_parser.add_argument(
+        "--config", default="config.okx-prospective-direct-1h-extension.example.yaml"
+    )
+    prospective_direct_capture_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-capture"
+    )
+
+    prospective_direct_audit_parser = subparsers.add_parser(
+        "audit-okx-prospective-direct-1h-extension"
+    )
+    prospective_direct_audit_parser.add_argument("--capture-report", required=True)
+    prospective_direct_audit_parser.add_argument("--membership-gate", required=True)
+    prospective_direct_audit_parser.add_argument(
+        "--config", default="config.okx-prospective-direct-1h-extension.example.yaml"
+    )
+    prospective_direct_audit_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-extension"
+    )
+
+    portfolio_ledger_parser = subparsers.add_parser(
+        "build-prospective-portfolio-ledger"
+    )
+    portfolio_ledger_parser.add_argument("--preregistration-report", required=True)
+    portfolio_ledger_parser.add_argument("--membership-gate", required=True)
+    portfolio_ledger_parser.add_argument("--market-data-extension", required=True)
+    portfolio_ledger_parser.add_argument("--execution-mapping-report", required=True)
+    portfolio_ledger_parser.add_argument(
+        "--config", default="config.prospective-portfolio-ledger.example.yaml"
+    )
+    portfolio_ledger_parser.add_argument(
+        "--output-dir", default="reports/prospective-portfolio-ledger"
+    )
+
+    accounting_parser = subparsers.add_parser(
+        "freeze-prospective-economic-accounting-contract"
+    )
+    accounting_parser.add_argument("--portfolio-ledger", required=True)
+    accounting_parser.add_argument("--cost-evidence", required=True)
+    accounting_parser.add_argument(
+        "--config", default="config.prospective-economic-accounting.example.yaml"
+    )
+    accounting_parser.add_argument(
+        "--output-dir", default="reports/prospective-economic-accounting"
+    )
+
+    spread_semantics_parser = subparsers.add_parser(
+        "freeze-spread-application-semantics"
+    )
+    spread_semantics_parser.add_argument("--accounting-contract", required=True)
+    spread_semantics_parser.add_argument("--cost-evidence", required=True)
+    spread_semantics_parser.add_argument(
+        "--config", default="config.spread-application-semantics.example.yaml"
+    )
+    spread_semantics_parser.add_argument(
+        "--output-dir", default="reports/spread-application-semantics"
+    )
+
+    economic_scenario_parser = subparsers.add_parser(
+        "freeze-prospective-economic-cost-scenarios"
+    )
+    economic_scenario_parser.add_argument("--accounting-contract", required=True)
+    economic_scenario_parser.add_argument("--cost-evidence", required=True)
+    economic_scenario_parser.add_argument("--spread-semantics", required=True)
+    economic_scenario_parser.add_argument(
+        "--config", default="config.prospective-economic-cost-scenarios.example.yaml"
+    )
+    economic_scenario_parser.add_argument(
+        "--output-dir", default="reports/prospective-economic-cost-scenarios"
+    )
+
+    readiness_parser = subparsers.add_parser(
+        "audit-prospective-economic-readiness"
+    )
+    readiness_parser.add_argument("--portfolio-ledger", required=True)
+    readiness_parser.add_argument("--accounting-contract", required=True)
+    readiness_parser.add_argument("--cost-scenarios", required=True)
+    readiness_parser.add_argument("--market-data-extension", required=True)
+    readiness_parser.add_argument("--membership-gate", required=True)
+    readiness_parser.add_argument("--execution-mapping", required=True)
+    readiness_parser.add_argument(
+        "--config", default="config.prospective-economic-readiness-gate.example.yaml"
+    )
+    readiness_parser.add_argument(
+        "--output-dir", default="reports/prospective-economic-readiness"
+    )
+
+    sample_maturity_parser = subparsers.add_parser(
+        "audit-prospective-economic-sample-maturity"
+    )
+    sample_maturity_parser.add_argument(
+        "--readiness-report", action="append", required=True
+    )
+    sample_maturity_parser.add_argument(
+        "--config", default="config.prospective-economic-sample-maturity.example.yaml"
+    )
+    sample_maturity_parser.add_argument(
+        "--output-dir", default="reports/prospective-economic-sample-maturity"
+    )
+
+    accumulation_parser = subparsers.add_parser(
+        "freeze-prospective-epoch-accumulation-policy"
+    )
+    accumulation_parser.add_argument("--sample-maturity", required=True)
+    accumulation_parser.add_argument("--latest-readiness", required=True)
+    accumulation_parser.add_argument(
+        "--config", default="config.prospective-epoch-accumulation-policy.example.yaml"
+    )
+    accumulation_parser.add_argument(
+        "--output-dir", default="reports/prospective-epoch-accumulation-policy"
+    )
+
+    segment_chain_parser = subparsers.add_parser(
+        "freeze-prospective-direct-1h-segment-chain"
+    )
+    segment_chain_parser.add_argument("--accumulation-policy", required=True)
+    segment_chain_parser.add_argument("--sample-maturity", required=True)
+    segment_chain_parser.add_argument("--latest-readiness", required=True)
+    segment_chain_parser.add_argument("--extension-report", action="append", required=True)
+    segment_chain_parser.add_argument(
+        "--config", default="config.prospective-direct-1h-segment-chain.example.yaml"
+    )
+    segment_chain_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-segment-chain"
+    )
+
+    assembly_parser = subparsers.add_parser(
+        "freeze-prospective-epoch-assembly-state-machine"
+    )
+    assembly_parser.add_argument("--accumulation-policy", required=True)
+    assembly_parser.add_argument("--sample-maturity", required=True)
+    assembly_parser.add_argument("--latest-readiness", required=True)
+    assembly_parser.add_argument("--segment-chain", required=True)
+    assembly_parser.add_argument(
+        "--config", default="config.prospective-epoch-assembly.example.yaml"
+    )
+    assembly_parser.add_argument(
+        "--output-dir", default="reports/prospective-epoch-assembly"
+    )
+
+    capture_admission_parser = subparsers.add_parser(
+        "freeze-prospective-epoch-capture-admission"
+    )
+    capture_admission_parser.add_argument("--assembly-report", required=True)
+    capture_admission_parser.add_argument(
+        "--config", default="config.prospective-epoch-capture-admission.example.yaml"
+    )
+    capture_admission_parser.add_argument(
+        "--output-dir", default="reports/prospective-epoch-capture-admission"
+    )
+
+    capture_attempt_journal_parser = subparsers.add_parser(
+        "freeze-prospective-capture-attempt-journal"
+    )
+    capture_attempt_journal_parser.add_argument("--admission-ticket", required=True)
+    capture_attempt_journal_parser.add_argument(
+        "--config", default="config.prospective-capture-attempt-journal.example.yaml"
+    )
+    capture_attempt_journal_parser.add_argument(
+        "--output-dir", default="reports/prospective-capture-attempt-journal"
+    )
+
+    capture_receipt_chain_parser = subparsers.add_parser(
+        "audit-prospective-capture-attempt-receipt-chain"
+    )
+    capture_receipt_chain_parser.add_argument("--journal-contract", required=True)
+    capture_receipt_chain_parser.add_argument("--receipt", action="append", default=[])
+    capture_receipt_chain_parser.add_argument(
+        "--config", default="config.prospective-epoch-capture-attempt-receipt-chain.example.yaml"
+    )
+    capture_receipt_chain_parser.add_argument(
+        "--output-dir", default="reports/prospective-capture-attempt-receipt-chain"
+    )
+
+    capture_evidence_parser = subparsers.add_parser(
+        "materialize-prospective-capture-attempt-receipt"
+    )
+    capture_evidence_parser.add_argument("--receipt-chain", required=True)
+    capture_evidence_parser.add_argument("--attempt-evidence", required=True)
+    capture_evidence_parser.add_argument(
+        "--config", default="config.prospective-capture-attempt-evidence-adapter.example.yaml"
+    )
+    capture_evidence_parser.add_argument(
+        "--output-dir", default="reports/prospective-capture-attempt-evidence-adapter"
+    )
+
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
     normalize_parser.add_argument("--output", default="data/BTC_USDT_1h.csv")
@@ -581,6 +933,364 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_okx_direct_six_asset_1h_migration(direct_migration))
         for artifact_name, artifact_path in direct_migration.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-okx-public-response-mutability":
+        try:
+            mutability_result = audit_okx_public_response_mutability(
+                args.baseline_capture,
+                args.comparison_capture,
+                args.policy,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"okx_public_response_mutability_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_public_response_mutability(mutability_result))
+        for artifact_name, artifact_path in mutability_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-okx-direct-six-1h-execution-mapping":
+        try:
+            execution_mapping_result = audit_okx_direct_six_1h_execution_mapping(
+                args.migration_report,
+                args.mutability_report,
+                args.policy,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"okx_direct_six_1h_execution_mapping_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_direct_execution_mapping_audit(execution_mapping_result))
+        for artifact_name, artifact_path in execution_mapping_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-cross-sectional-variant-preregistration":
+        try:
+            preregistration_result = freeze_cross_sectional_variant_preregistration(
+                args.mechanism_report,
+                args.execution_mapping_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"cross_sectional_variant_preregistration_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_variant_preregistration(preregistration_result))
+        for artifact_name, artifact_path in preregistration_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-execution-cost-evidence":
+        try:
+            execution_cost_result = freeze_execution_cost_evidence(
+                args.preregistration_report,
+                args.execution_mapping_report,
+                args.evidence_config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"execution_cost_evidence_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_execution_cost_evidence(execution_cost_result))
+        for artifact_name, artifact_path in execution_cost_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "capture-okx-future-universe-snapshot":
+        try:
+            future_snapshot_result = capture_okx_future_universe_snapshot(
+                args.baseline_universe_report,
+                args.archive_config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"okx_future_universe_snapshot_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_future_universe_result(future_snapshot_result))
+        for artifact_name, artifact_path in future_snapshot_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-okx-future-universe-transition":
+        try:
+            future_transition_result = audit_okx_future_universe_transition(
+                args.previous_snapshot,
+                args.current_snapshot,
+                args.archive_config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"okx_future_universe_transition_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_future_universe_result(future_transition_result))
+        for artifact_name, artifact_path in future_transition_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-membership-bar-gate":
+        try:
+            membership_gate_result = freeze_prospective_membership_bar_gate(
+                args.transition_report,
+                args.execution_mapping_report,
+                args.policy,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_membership_bar_gate_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_membership_bar_gate_result(membership_gate_result))
+        for artifact_name, artifact_path in membership_gate_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "capture-okx-prospective-direct-1h-extension":
+        try:
+            prospective_capture_result = capture_prospective_direct_1h_extension(
+                args.membership_gate,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_extension_capture_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_direct_result(prospective_capture_result))
+        for artifact_name, artifact_path in prospective_capture_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-okx-prospective-direct-1h-extension":
+        try:
+            prospective_audit_result = audit_prospective_direct_1h_extension(
+                args.capture_report,
+                args.membership_gate,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_extension_audit_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_direct_result(prospective_audit_result))
+        for artifact_name, artifact_path in prospective_audit_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "build-prospective-portfolio-ledger":
+        try:
+            ledger_result = build_prospective_portfolio_ledger(
+                args.preregistration_report,
+                args.membership_gate,
+                args.market_data_extension,
+                args.execution_mapping_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_portfolio_ledger_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_portfolio_ledger(ledger_result))
+        for artifact_name, artifact_path in ledger_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-economic-accounting-contract":
+        try:
+            accounting_result = freeze_prospective_economic_accounting_contract(
+                args.portfolio_ledger,
+                args.cost_evidence,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_economic_accounting_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_economic_accounting_contract(accounting_result))
+        for artifact_name, artifact_path in accounting_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-spread-application-semantics":
+        try:
+            spread_semantics_result = freeze_spread_application_semantics(
+                args.accounting_contract,
+                args.cost_evidence,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"spread_application_semantics_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_spread_application_semantics(spread_semantics_result))
+        for artifact_name, artifact_path in spread_semantics_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-economic-cost-scenarios":
+        try:
+            economic_scenario_result = freeze_prospective_economic_cost_scenarios(
+                args.accounting_contract,
+                args.cost_evidence,
+                args.spread_semantics,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_economic_cost_scenarios_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_economic_cost_scenarios(economic_scenario_result))
+        for artifact_name, artifact_path in economic_scenario_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-prospective-economic-readiness":
+        try:
+            readiness_result = audit_prospective_economic_readiness(
+                args.portfolio_ledger,
+                args.accounting_contract,
+                args.cost_scenarios,
+                args.market_data_extension,
+                args.membership_gate,
+                args.execution_mapping,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_economic_readiness_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_economic_readiness(readiness_result))
+        for artifact_name, artifact_path in readiness_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-prospective-economic-sample-maturity":
+        try:
+            sample_maturity_result = audit_prospective_economic_sample_maturity(
+                args.readiness_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_economic_sample_maturity_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_economic_sample_maturity(sample_maturity_result))
+        for artifact_name, artifact_path in sample_maturity_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-epoch-accumulation-policy":
+        try:
+            accumulation_result = freeze_prospective_epoch_accumulation_policy(
+                args.sample_maturity,
+                args.latest_readiness,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_epoch_accumulation_policy_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_epoch_accumulation_policy(accumulation_result))
+        for artifact_name, artifact_path in accumulation_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-direct-1h-segment-chain":
+        try:
+            segment_chain_result = freeze_prospective_direct_1h_segment_chain(
+                args.accumulation_policy,
+                args.sample_maturity,
+                args.latest_readiness,
+                args.extension_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_chain_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_segment_chain_result(segment_chain_result))
+        for artifact_name, artifact_path in segment_chain_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-epoch-assembly-state-machine":
+        try:
+            assembly_result = freeze_prospective_epoch_assembly_state_machine(
+                args.accumulation_policy,
+                args.sample_maturity,
+                args.latest_readiness,
+                args.segment_chain,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_epoch_assembly_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_epoch_assembly_result(assembly_result))
+        for artifact_name, artifact_path in assembly_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-epoch-capture-admission":
+        try:
+            capture_admission_result = freeze_prospective_epoch_capture_admission(
+                args.assembly_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_epoch_capture_admission_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_capture_admission_result(capture_admission_result))
+        for artifact_name, artifact_path in capture_admission_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-capture-attempt-journal":
+        try:
+            capture_attempt_journal_result = freeze_prospective_capture_attempt_journal(
+                args.admission_ticket,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_capture_attempt_journal_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_capture_attempt_journal_result(capture_attempt_journal_result))
+        for artifact_name, artifact_path in capture_attempt_journal_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-prospective-capture-attempt-receipt-chain":
+        try:
+            receipt_chain_result = audit_prospective_capture_attempt_receipt_chain(
+                args.journal_contract,
+                args.receipt,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_capture_attempt_receipt_chain_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_receipt_chain_result(receipt_chain_result))
+        for artifact_name, artifact_path in receipt_chain_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "materialize-prospective-capture-attempt-receipt":
+        try:
+            materialization_result = materialize_prospective_capture_attempt_receipt(
+                args.receipt_chain,
+                args.attempt_evidence,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_capture_attempt_receipt_materialization_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_receipt_materialization_result(materialization_result))
+        for artifact_name, artifact_path in materialization_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

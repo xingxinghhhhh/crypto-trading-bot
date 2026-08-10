@@ -51,6 +51,26 @@ jobs:
           src/crypto_bot/market/okx_universe_intake.py
           src/crypto_bot/market/okx_universe_history_extension.py
           src/crypto_bot/market/okx_direct_six_asset_migration.py
+          src/crypto_bot/market/public_response_mutability.py
+          src/crypto_bot/market/direct_execution_mapping_audit.py
+          src/crypto_bot/market/spread_application_semantics.py
+          src/crypto_bot/prospective_economic_cost_scenario_contract.py
+          src/crypto_bot/prospective_economic_readiness_gate.py
+          src/crypto_bot/prospective_economic_sample_maturity_gate.py
+          src/crypto_bot/prospective_epoch_accumulation_policy.py
+          src/crypto_bot/prospective_epoch_assembly_state_machine.py
+          src/crypto_bot/cross_sectional_variant_preregistration.py
+          src/crypto_bot/market/execution_cost_evidence.py
+          src/crypto_bot/market/okx_future_universe_archive.py
+          src/crypto_bot/market/prospective_membership_bar_gate.py
+          src/crypto_bot/market/prospective_direct_1h_extension.py
+          src/crypto_bot/market/prospective_direct_1h_segment_chain.py
+          src/crypto_bot/market/prospective_epoch_capture_admission.py
+          src/crypto_bot/market/prospective_capture_attempt_journal.py
+          src/crypto_bot/market/prospective_capture_attempt_receipt_chain.py
+          src/crypto_bot/market/prospective_capture_attempt_evidence_adapter.py
+          src/crypto_bot/prospective_portfolio_ledger.py
+          src/crypto_bot/prospective_economic_accounting_contract.py
           src/crypto_bot/market/legacy_timestamp_mapping_audit.py
           src/crypto_bot/market/timestamp_semantics.py
           src/crypto_bot/portfolio

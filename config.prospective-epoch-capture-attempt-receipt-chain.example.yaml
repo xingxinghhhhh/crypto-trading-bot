@@ -1,0 +1,24 @@
+schema_version: 1
+policy_id: prospective_capture_attempt_receipt_chain_v1
+receipt_order: strict_input_order
+attempt_numbering: strict_monotonic_from_1
+receipt_mutability: immutable
+receipt_chain: append_only
+allowed_outcomes:
+  - transport_failed
+  - validation_failed
+  - validation_passed
+validation_pass_implies_accepted: true
+accepted_attempt_count_max: 1
+retry_after_transport_failed: true
+retry_after_validation_failed: true
+retry_after_validation_passed: false
+retry_after_accepted: false
+receipt_deletion_prohibited: true
+receipt_reordering_prohibited: true
+receipt_reclassification_prohibited: true
+response_selection_prohibited: true
+sample_threshold: 500
+economic_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false

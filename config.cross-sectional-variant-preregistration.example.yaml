@@ -1,0 +1,34 @@
+schema_version: 1
+protocol_id: cross_sectional_variant_family_preregistration_v1
+family_scope: all_36_variants
+direction_policy: evaluate_both_without_selection
+primary_reporting_order: mechanism_variant_csv_order
+future_multiple_testing_method: holm
+missing_variant_policy: fail_family
+result_driven_reconfiguration_prohibited: true
+prior_results_disclosure: true
+global_preregistration: false
+mechanism_sha256: dcc8e9364efd900487608090ba879194a8a84195cbeab2dc63d0266df97406d5
+mechanism_report_sha256: d55880b8cd702f91ee8579d5dd792bf84a37296181441c2b4991c4d6578dcead
+execution_mapping_sha256: 48df5c8d1d8f2ee76e45f85920ded6ce37dc25422a14e1b54626668f8aec9ddb
+execution_mapping_report_sha256: 39d0a719f1546c5249d57c11cc2422f0dc396a8e9a5f55f1742a60d321899074
+family_size: 36
+factor_names:
+  - low_volatility_20
+  - mean_reversion_20
+  - momentum_12
+  - momentum_4
+  - trend_quality_20
+  - volume_momentum_20
+horizons:
+  - 4
+  - 16
+  - 64
+rank_directions:
+  - high_rank_selected
+  - low_rank_selected
+claims:
+  selection_prohibited: true
+  pnl_computation_authorized: false
+  profitability_evidence: false
+  readiness_changed: false

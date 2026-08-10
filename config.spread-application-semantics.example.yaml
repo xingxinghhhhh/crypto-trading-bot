@@ -1,0 +1,21 @@
+schema_version: 1
+policy_id: prospective_spread_application_semantics_v1
+source_component: spread
+source_spread_stress_bps:
+  - 0
+  - 5
+  - 10
+application_semantics: one_way_execution_friction_per_asset_trade_notional
+application_multiplier: 1
+half_spread_conversion: false
+full_spread_conversion: false
+historical_spread_directly_observed: false
+quoted_spread_width_claim: false
+policy_assumption: true
+cost_uniform_across_variants: true
+benchmark_uses_same_semantics: true
+return_computation_authorized: false
+turnover_computation_authorized: false
+cost_amount_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false

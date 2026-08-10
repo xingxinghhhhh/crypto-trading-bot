@@ -1,0 +1,42 @@
+schema_version: 1
+policy_id: okx_direct_six_1h_execution_cost_evidence_v1
+market_type: spot
+quote_ccy: USDT
+fee_policy_id: okx_spot_taker_conservative_policy_assumption_v1
+fee_side_policy: taker_conservative
+taker_fee_bps: 100
+fee_evidence_status: conservative_policy_assumption
+fee_evidence_artifact: docs/evidence/okx_spot_fee_policy_assumption_v1.json
+fee_evidence_sha256: eefab41b01c686177b97d141a38ed73d8da7ec165b89db531604581ab4b7a202
+spread_policy: fixed_stress_assumption_no_historical_observation
+spread_stress_bps:
+  - 0
+  - 5
+  - 10
+slippage_policy: fixed_uniform_stress_assumption
+slippage_stress_bps:
+  - 0
+  - 5
+  - 10
+capacity_policy: fixed_participation_cap_on_canonical_base_volume
+capacity_volume_field: volume
+max_participation_rate: 0.01
+cost_uniform_across_variants: true
+historical_spread_directly_observed: false
+historical_volume_version_pinned: true
+capacity_evidence_version_sensitive: true
+capacity_not_execution_guarantee: true
+preregistration_sha256: 28afc8ec130aef5da62b857064f3a4f5aa98fcffb06d390a02430748fb5c6a68
+preregistration_report_sha256: eabefd05c3eb286a9596589cd395257206c5324d5193a7353a7e241c9f66eb71
+execution_mapping_sha256: 48df5c8d1d8f2ee76e45f85920ded6ce37dc25422a14e1b54626668f8aec9ddb
+execution_mapping_report_sha256: 39d0a719f1546c5249d57c11cc2422f0dc396a8e9a5f55f1742a60d321899074
+migration_sha256: 67fb338366f01f6ac03e0280f374fb8c6c5578029d7756286d5315ac1cc3b698
+migration_report_sha256: 33374e95f13fabff61a4611fcbb44b46c027b6be271ff1975b71b772ea3376e6
+baseline_capture_sha256: ff289f634e1d2c258e5e3d0314d751f7dd3cb53f3e2f3ad69e5356e65ab0ee8b
+claims:
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  market_impact_model_verified: false
+  profitability_evidence: false
+  pnl_computation_authorized: false
+  readiness_changed: false

@@ -172,6 +172,27 @@ def okx_history_rows_to_csv_bytes(rows: list[list[str]]) -> bytes:
     return _rows_to_csv_bytes(rows)
 
 
+def fetch_okx_public_instruments_snapshot(
+    fetcher: Callable[[str], bytes] | None = None,
+) -> bytes:
+    """Fetch the public SPOT instruments response using the frozen endpoint contract."""
+    params = {"instType": "SPOT"}
+    url = f"{OKX_INSTRUMENTS_ENDPOINT}?{urlencode(params)}"
+    return _fetch(fetcher or _fetch_public_bytes, url, "instrument_snapshot")
+
+
+def evaluate_okx_public_instrument_snapshot(
+    response_bytes: bytes,
+    policy: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Apply the frozen intake eligibility policy without selecting new history."""
+    return _evaluate_instrument_snapshot(
+        response_bytes,
+        policy,
+        history_start_ms=_timestamp_ms(policy["history_start"]),
+    )
+
+
 def capture_okx_universe_intake(
     registry_path: str | Path,
     policy_path: str | Path,

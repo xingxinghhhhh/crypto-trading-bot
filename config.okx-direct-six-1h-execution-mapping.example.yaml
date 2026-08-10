@@ -1,0 +1,33 @@
+schema_version: 1
+policy_version: 1
+mapping_policy_id: okx_direct_six_1h_exact_t_plus_2h_open_v1
+migration_id: okx_direct_six_asset_1h_v1
+migration_sha256: 67fb338366f01f6ac03e0280f374fb8c6c5578029d7756286d5315ac1cc3b698
+migration_report_sha256: 33374e95f13fabff61a4611fcbb44b46c027b6be271ff1975b71b772ea3376e6
+panel_id: okx_btc_eth_sol_knc_swftc_bico_1h_direct_v1
+panel_sha256: 59cb360a26c373c69407dac2f495b90fd3a848c7e364f464b2a0e295429c8d28
+mutability_audit_sha256: 3ff4b3736a00eb55b34bcc49c87fcc4dd3bb0d70f741399c1112a3711a9dfb2c
+baseline_capture_sha256: ff289f634e1d2c258e5e3d0314d751f7dd3cb53f3e2f3ad69e5356e65ab0ee8b
+comparison_capture_sha256: 5cba528b4210be98a72f92675f66da837f469a9102a6cf54c71508748cfc808e
+dataset_ids:
+  - okx_btc_usdt_1h_direct_frozen
+  - okx_eth_usdt_1h_direct_frozen
+  - okx_sol_usdt_1h_direct_frozen
+  - okx_knc_usdt_1h_frozen
+  - okx_swftc_usdt_1h_frozen
+  - okx_bico_usdt_1h_frozen
+signal_completion_delay_bars: 1
+execution_delay_after_completion_bars: 1
+execution_offset_bars: 2
+execution_price_field: open
+mapping_policy: exact_timestamp_no_fill
+expected_signal_timestamp_count: 40191
+expected_mapping_row_count: 241146
+expected_structural_valid_count: 241134
+expected_tail_count: 12
+claims:
+  universe_kind: current_okx_live_convenience_snapshot
+  historical_point_in_time_membership: false
+  survivorship_bias_resolved: false
+  profitability_evidence: false
+  pnl_computation_authorized: false

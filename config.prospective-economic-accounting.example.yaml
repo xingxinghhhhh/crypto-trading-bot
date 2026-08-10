@@ -1,0 +1,48 @@
+schema_version: 1
+policy_id: prospective_execution_to_execution_accounting_v1
+portfolio_ledger_report: reports/prospective-portfolio-ledger/prospective-portfolio-ledger.010881f9749218f129fab363ed9ebfc313182df2c4459ddafdbbed5465a2e65c.json
+portfolio_ledger_sha256: 010881f9749218f129fab363ed9ebfc313182df2c4459ddafdbbed5465a2e65c
+portfolio_ledger_report_sha256: 9178eb5f973671edc65320cf6837eee4ed168693408b95ff9008a55a57a3fb93
+cost_evidence_report: reports/execution-cost-evidence/execution-cost-evidence.5633858d1e4377c507953df65f3014c30b3d98d1ec4f36c72bf1fa4c5274dc21.json
+cost_evidence_sha256: 5633858d1e4377c507953df65f3014c30b3d98d1ec4f36c72bf1fa4c5274dc21
+cost_evidence_report_sha256: 2d74a17fb8e530f04594e418bfa20daec86821132af620fb046ba9a71e63b5fb
+target_state_count: 161
+closed_interval_count: 160
+terminal_unscored_count: 1
+family_size: 36
+rebalance_frequency_bars: 1
+horizon_role: research_family_label_only
+target_effective_policy: at_frozen_execution_open
+initial_state: all_cash
+initial_trade_policy: transition_from_cash_to_first_target
+terminal_policy: last_target_unscored_without_next_execution_anchor
+terminal_liquidation: false
+trade_notional_policy: sum_abs_asset_weight_changes
+turnover_reporting_policy: one_way_total_variation_including_cash
+cost_application_policy: per_execution_trade_notional
+spread_application_semantics_resolved: false
+economic_cost_application_ready: false
+primary_benchmark: equal_weight_six_asset_hourly_rebalanced
+benchmark_weight: 1/6
+benchmark_uses_same_execution_timestamps: true
+benchmark_uses_same_cost_contract: true
+return_computation_authorized: false
+turnover_computation_authorized: false
+cost_amount_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false
+claims:
+  future_only_membership_evidence: true
+  historical_point_in_time_membership: false
+  historical_survivorship_bias_resolved: false
+  prior_related_results_exist: true
+  global_preregistration: false
+  selection_prohibited: true
+  profitability_evidence: false
+  return_computation_authorized: false
+  turnover_computation_authorized: false
+  cost_amount_computation_authorized: false
+  pnl_computation_authorized: false
+  readiness_changed: false
+  spread_application_semantics_resolved: false
+  economic_cost_application_ready: false

@@ -1,0 +1,52 @@
+schema_version: 1
+policy_id: prospective_membership_1h_bar_gate_v1
+baseline_universe_report: reports/okx-universe-capture/okx-universe-capture.b96aa6011796c8e2f1e0d7826c0f95b9f5be15fbdf2cf38862493f3fc75da451.json
+baseline_capture_sha256: b96aa6011796c8e2f1e0d7826c0f95b9f5be15fbdf2cf38862493f3fc75da451
+baseline_report_sha256: f193b1f999843b5903d0934b6e6c3f6d758b3128101b9fa4bc1516a2bd4fea3d
+current_snapshot_report: reports/okx-future-universe-snapshot/okx-universe-snapshot.d7e5fd717d2ed1f90f24d0176ea14ad283611f37c7246e075133d97caf58627e.json
+current_snapshot_sha256: d7e5fd717d2ed1f90f24d0176ea14ad283611f37c7246e075133d97caf58627e
+current_snapshot_report_sha256: 11b100c3ad46504ebd08a859a127771b60089a7c5f8ffe43d06e2506b073136d
+transition_report: reports/okx-future-universe-transition-v2/okx-universe-transition.706ba3e03bfc199ba332da1fd23cec7554ad5279c44f895b8eb302d3bfe244ef.json
+transition_sha256: 706ba3e03bfc199ba332da1fd23cec7554ad5279c44f895b8eb302d3bfe244ef
+transition_report_sha256: e129f1e9754a1321b2e605996a8990418718a98be676a89970aea4ae94791f49
+execution_mapping_report: reports/okx-direct-six-1h-execution-mapping/okx-direct-six-1h-execution-mapping.48df5c8d1d8f2ee76e45f85920ded6ce37dc25422a14e1b54626668f8aec9ddb.json
+execution_mapping_sha256: 48df5c8d1d8f2ee76e45f85920ded6ce37dc25422a14e1b54626668f8aec9ddb
+execution_mapping_report_sha256: 39d0a719f1546c5249d57c11cc2422f0dc396a8e9a5f55f1742a60d321899074
+tracked_inst_ids:
+  - BTC-USDT
+  - ETH-USDT
+  - SOL-USDT
+  - KNC-USDT
+  - SWFTC-USDT
+  - BICO-USDT
+dataset_ids:
+  - okx_btc_usdt_1h_direct_frozen
+  - okx_eth_usdt_1h_direct_frozen
+  - okx_sol_usdt_1h_direct_frozen
+  - okx_knc_usdt_1h_frozen
+  - okx_swftc_usdt_1h_frozen
+  - okx_bico_usdt_1h_frozen
+timeframe: 1h
+signal_completion_delay_bars: 1
+execution_offset_bars: 2
+epoch_start_policy: first_full_bar_open_at_or_after_previous_snapshot
+epoch_close_policy: execution_anchor_strictly_before_current_snapshot
+inter_snapshot_membership_policy: previous_snapshot_state
+transition_effective_at: current_snapshot_received_at
+transition_bar_application: first_full_bar_open_at_or_after_transition
+replacement_policy: no_automatic_replacement
+retroactive_membership_change: false
+continuous_membership_directly_observed: false
+historical_backfill_prohibited: true
+pnl_computation_authorized: false
+readiness_changed: false
+claims:
+  future_only_membership_evidence: true
+  membership_policy_piecewise_constant_between_snapshots: true
+  continuous_membership_directly_observed: false
+  historical_point_in_time_membership: false
+  historical_survivorship_bias_resolved: false
+  historical_delisted_assets_recovered: false
+  profitability_evidence: false
+  pnl_computation_authorized: false
+  readiness_changed: false

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "evidence_id": "okx_spot_fee_policy_assumption_v1",
+  "provider": "okx",
+  "market_type": "spot",
+  "quote_ccy": "USDT",
+  "evidence_status": "conservative_policy_assumption",
+  "fee_side": "taker",
+  "fee_rate_bps": 100,
+  "account_tier": "unknown",
+  "user_specific_fee_verified": false,
+  "private_api_used": false,
+  "official_rate_claim": false,
+  "policy_note": "A conservative research-only assumption; it is not a claim about any user's actual fee tier, discount, rebate, or VIP status.",
+  "pnl_computation_authorized": false
+}

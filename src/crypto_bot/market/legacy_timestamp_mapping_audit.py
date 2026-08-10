@@ -430,13 +430,22 @@ def _dataset_rows(
     return rows
 
 
-def _mapping_rows(entries: tuple[Any, ...], frames: dict[str, pd.DataFrame], timestamps: tuple[pd.Timestamp, ...], statuses: dict[str, str], config: dict[str, Any]) -> list[dict[str, Any]]:
+def build_exact_next_open_mapping_rows(
+    entries: tuple[Any, ...],
+    frames: dict[str, pd.DataFrame],
+    timestamps: tuple[pd.Timestamp, ...],
+    statuses: dict[str, str],
+    config: dict[str, Any],
+    *,
+    error_prefix: str = "legacy_timestamp_mapping",
+) -> list[dict[str, Any]]:
+    """Build the shared exact t+2h open mapping without filling or substitution."""
     common_last = timestamps[-1]
     indexes = {}
     for dataset_id, frame in frames.items():
         indexed = frame.set_index("timestamp")["open"]
         if not indexed.index.is_unique:
-            raise MarketDataError("legacy_timestamp_mapping_duplicate_timestamp")
+            raise MarketDataError(f"{error_prefix}_duplicate_timestamp")
         indexes[dataset_id] = indexed
     rows = []
     for signal_timestamp in timestamps:
@@ -456,7 +465,7 @@ def _mapping_rows(entries: tuple[Any, ...], frames: dict[str, pd.DataFrame], tim
                     mapped_open = float(series.loc[execution_timestamp])
                     finite = math.isfinite(mapped_open)
                 if not exact or not finite:
-                    raise MarketDataError("legacy_timestamp_mapping_internal_exact_open_missing")
+                    raise MarketDataError(f"{error_prefix}_internal_exact_open_missing")
             status = "tail_outside_common_panel" if tail else "exact_finite_open"
             rows.append(
                 {
@@ -476,6 +485,16 @@ def _mapping_rows(entries: tuple[Any, ...], frames: dict[str, pd.DataFrame], tim
                 }
             )
     return rows
+
+
+def _mapping_rows(
+    entries: tuple[Any, ...],
+    frames: dict[str, pd.DataFrame],
+    timestamps: tuple[pd.Timestamp, ...],
+    statuses: dict[str, str],
+    config: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return build_exact_next_open_mapping_rows(entries, frames, timestamps, statuses, config)
 
 
 def _mapping_counts(timestamps: tuple[pd.Timestamp, ...], rows: list[dict[str, Any]]) -> dict[str, int]:
