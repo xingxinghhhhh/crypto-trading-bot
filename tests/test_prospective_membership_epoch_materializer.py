@@ -15,8 +15,10 @@ from crypto_bot.market.okx_future_universe_archive import TRACKED_FIELDS
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / module.DEFAULT_CONFIG_FILENAME
-GATE = next((ROOT / "reports/prospective-membership-bar-gate").glob("*.json"))
 CHAIN = next((ROOT / "reports/prospective-direct-1h-segment-chain").glob("*.json"))
+_CHAIN_REPORT = json.loads(CHAIN.read_text(encoding="utf-8"))
+_CHAIN_GATE_SHA = _CHAIN_REPORT["identity"]["segments"][0]["membership_gate_sha256"]
+GATE = ROOT / "reports/prospective-membership-bar-gate" / f"prospective-membership-bar-gate.{_CHAIN_GATE_SHA}.json"
 TRANSITION = next((ROOT / "reports/prospective-snapshot-transition-materializer-v2").glob("*.json"), None)
 if TRANSITION is None:
     TRANSITION = next((ROOT / "reports/prospective-snapshot-transition").glob("*.json"))
