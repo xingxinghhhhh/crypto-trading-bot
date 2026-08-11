@@ -206,6 +206,11 @@ def _portable_audit_path(value: str, repo_root: Path) -> str:
         index = text.lower().find(anchor.lower())
         if index >= 0:
             return text[index:]
+    # Registry audit paths may use a project-specific filename that does not
+    # contain one of the anchors above.  Keep the filename while dropping the
+    # host-specific absolute parent directory.
+    if text.startswith("/") or re.match(r"^[A-Za-z]:/", text):
+        return Path(text).name
     return text
 
 
