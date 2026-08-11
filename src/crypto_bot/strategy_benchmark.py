@@ -407,10 +407,10 @@ def _write_matrix_reports(rows: list[dict[str, Any]], output_dir: Path, stamp: s
     # intentionally self-contained, and this also prevents consumers that
     # discover ``strategy_benchmark_*.json`` files from mistaking the matrix
     # artifact for an incomplete benchmark report.
-    json_path.write_text(
-        json.dumps({**matrix, "rows": rows, "matrix": matrix}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    dashboard_name = f"strategy_benchmark_dashboard_{stamp}.html"
+    matrix_json_payload = {**matrix, "rows": rows, "html_path": dashboard_name}
+    matrix_json_payload["matrix"] = {**matrix, "html_path": dashboard_name}
+    json_path.write_text(json.dumps(matrix_json_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"csv_path": csv_path, "json_path": json_path, "matrix": matrix}
 
 
