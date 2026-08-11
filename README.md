@@ -1129,6 +1129,29 @@ artifacts before writing marker-last state, dependency, and constraint files.
 It does not perform a transition, fetch network data, backfill receipts,
 compute economics/PnL, or change readiness.
 
+Freeze the accepted-closeout transition admission without creating a
+transition artifact:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-snapshot-transition-admission \
+    --rollover-report reports/prospective-epoch-closeout-rollover/prospective-epoch-closeout-rollover.<rollover_sha>.json \
+    --closeout-report reports/prospective-capture-window-closeout/prospective-capture-window-closeout.<closeout_sha>.json \
+    --config config.prospective-snapshot-transition-admission.example.yaml \
+    --output-dir reports/prospective-snapshot-transition-admission
+```
+
+The admission is `blocked_pending_closeout` for the current real
+`pending_window_end`/`hold` state and `blocked_missed_epoch` for a missed
+window. Only `accepted_closed` plus `transition_eligible` can be `admitted`.
+The admitted branch derives the previous snapshot from the validated epoch
+lineage and the current snapshot from the closeout's single first-validator
+pass receipt, then replays the existing public future-snapshot validator and
+requires `current.received_at > previous.received_at`. Snapshot identities
+cannot be supplied through config or CLI. Outputs are marker-last,
+content-addressed admission/dependency/constraint artifacts; no transition,
+network request, sample credit, economic/PnL calculation, or readiness change
+is performed.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness

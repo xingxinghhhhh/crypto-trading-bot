@@ -108,6 +108,10 @@ from crypto_bot.prospective_epoch_closeout_rollover import (
     audit_prospective_epoch_closeout_rollover,
     format_prospective_epoch_closeout_rollover,
 )
+from crypto_bot.market.prospective_snapshot_transition_admission import (
+    freeze_prospective_snapshot_transition_admission,
+    format_prospective_snapshot_transition_admission,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -739,6 +743,18 @@ def main() -> None:
         "--output-dir", default="reports/prospective-epoch-closeout-rollover"
     )
 
+    snapshot_admission_parser = subparsers.add_parser(
+        "freeze-prospective-snapshot-transition-admission"
+    )
+    snapshot_admission_parser.add_argument("--rollover-report", required=True)
+    snapshot_admission_parser.add_argument("--closeout-report", required=True)
+    snapshot_admission_parser.add_argument(
+        "--config", default="config.prospective-snapshot-transition-admission.example.yaml"
+    )
+    snapshot_admission_parser.add_argument(
+        "--output-dir", default="reports/prospective-snapshot-transition-admission"
+    )
+
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
     normalize_parser.add_argument("--output", default="data/BTC_USDT_1h.csv")
@@ -1361,6 +1377,22 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_prospective_epoch_closeout_rollover(rollover_result))
         for artifact_name, artifact_path in rollover_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-snapshot-transition-admission":
+        try:
+            snapshot_admission_result = freeze_prospective_snapshot_transition_admission(
+                args.rollover_report,
+                args.closeout_report,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_snapshot_transition_admission_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_snapshot_transition_admission(snapshot_admission_result))
+        for artifact_name, artifact_path in snapshot_admission_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 
