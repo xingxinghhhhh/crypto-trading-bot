@@ -1107,6 +1107,28 @@ Missed windows cannot receive retroactive receipts, snapshots, sample credit,
 or schedule shifts. The command is offline and does not change the real
 zero-receipt chain.
 
+Consume the closeout into the next governed-epoch contract without performing
+the transition itself:
+
+```bash
+python -m crypto_bot.cli audit-prospective-epoch-closeout-rollover \
+    --closeout-report reports/prospective-capture-window-closeout/prospective-capture-window-closeout.<closeout_sha>.json \
+    --assembly-report reports/prospective-epoch-assembly/prospective-epoch-assembly.<assembly_sha>.json \
+    --accumulation-policy reports/prospective-epoch-accumulation-policy/prospective-epoch-accumulation-policy.<policy_sha>.json \
+    --sample-maturity reports/prospective-economic-sample-maturity/prospective-economic-sample-maturity.<maturity_sha>.json \
+    --config config.prospective-epoch-closeout-rollover.example.yaml \
+    --output-dir reports/prospective-epoch-closeout-rollover
+```
+
+The derived action is fail-closed and future-only: `pending_window_end` holds
+epoch 2, `accepted_closed` is only `transition_eligible`, and
+`missed_no_backfill` rolls to epoch 3 at the fixed Sunday
+2026-08-23 10:00–11:00 UTC window with zero sample credit. The validator
+replays the public closeout validator and all content-addressed parent
+artifacts before writing marker-last state, dependency, and constraint files.
+It does not perform a transition, fetch network data, backfill receipts,
+compute economics/PnL, or change readiness.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness

@@ -104,6 +104,10 @@ from crypto_bot.market.prospective_capture_window_closeout import (
     audit_prospective_capture_window_closeout,
     format_capture_window_closeout_result,
 )
+from crypto_bot.prospective_epoch_closeout_rollover import (
+    audit_prospective_epoch_closeout_rollover,
+    format_prospective_epoch_closeout_rollover,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -721,6 +725,20 @@ def main() -> None:
         "--output-dir", default="reports/prospective-capture-window-closeout"
     )
 
+    closeout_rollover_parser = subparsers.add_parser(
+        "audit-prospective-epoch-closeout-rollover"
+    )
+    closeout_rollover_parser.add_argument("--closeout-report", required=True)
+    closeout_rollover_parser.add_argument("--assembly-report", required=True)
+    closeout_rollover_parser.add_argument("--accumulation-policy", required=True)
+    closeout_rollover_parser.add_argument("--sample-maturity", required=True)
+    closeout_rollover_parser.add_argument(
+        "--config", default="config.prospective-epoch-closeout-rollover.example.yaml"
+    )
+    closeout_rollover_parser.add_argument(
+        "--output-dir", default="reports/prospective-epoch-closeout-rollover"
+    )
+
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
     normalize_parser.add_argument("--output", default="data/BTC_USDT_1h.csv")
@@ -1325,6 +1343,24 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_capture_window_closeout_result(closeout_result))
         for artifact_name, artifact_path in closeout_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-prospective-epoch-closeout-rollover":
+        try:
+            rollover_result = audit_prospective_epoch_closeout_rollover(
+                args.closeout_report,
+                args.assembly_report,
+                args.accumulation_policy,
+                args.sample_maturity,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_epoch_closeout_rollover_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_epoch_closeout_rollover(rollover_result))
+        for artifact_name, artifact_path in rollover_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

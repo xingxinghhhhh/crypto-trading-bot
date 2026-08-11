@@ -1,0 +1,13 @@
+schema_version: 1
+policy_id: prospective_epoch_closeout_rollover_v1
+pending_action: hold
+accepted_action: transition_eligible
+missed_action: rollover_next_window
+missed_epoch_sample_credit: 0
+epoch_ordinal_basis: governed_capture_window
+schedule_shift_after_miss: false
+historical_backfill_prohibited: true
+required_sample_threshold: 500
+economic_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false
