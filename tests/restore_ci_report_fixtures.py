@@ -7,11 +7,28 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
+_REQUIRED_REPORT_DIRS = (
+    "cross-sectional-portfolio-mechanism",
+    "cross-sectional-variant-preregistration",
+    "okx-direct-six-asset-1h-migration",
+    "okx-future-universe-snapshot",
+    "okx-universe-capture",
+    "prospective-capture-attempt-receipt-chain",
+    "prospective-membership-bar-gate",
+    "prospective-membership-epoch-closure-smoke",
+    "prospective-membership-epoch-smoke",
+)
+
+
+def _reports_are_complete(reports: Path) -> bool:
+    return all(any((reports / name).glob("*.json")) for name in _REQUIRED_REPORT_DIRS)
+
+
 def restore_report_fixtures() -> None:
     repo = Path(__file__).resolve().parents[1]
     reports = repo / "reports"
     archive = Path(__file__).resolve().parent / "fixtures" / "ci-reports.zip"
-    if any(reports.rglob("*.json")):
+    if _reports_are_complete(reports):
         return
     if not archive.is_file():
         raise FileNotFoundError(f"CI report fixture archive is missing: {archive}")
@@ -31,9 +48,9 @@ def restore_report_fixtures() -> None:
             with bundle.open(info) as source, target.open("wb") as destination:
                 copyfileobj(source, destination)
 
-    restored_json = list(reports.rglob("*.json"))
-    if not restored_json:
-        raise RuntimeError(f"CI report fixture archive restored no JSON files: {reports}")
+    missing = [name for name in _REQUIRED_REPORT_DIRS if not any((reports / name).glob("*.json"))]
+    if missing:
+        raise RuntimeError(f"CI report fixture archive is missing required directories: {missing}")
 
 
 if __name__ == "__main__":
