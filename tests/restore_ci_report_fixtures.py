@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from shutil import copyfileobj
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -26,12 +27,17 @@ def restore_report_fixtures() -> None:
     reports.mkdir(parents=True, exist_ok=True)
     reports_root = reports.resolve()
     with ZipFile(archive) as bundle:
-        members = bundle.namelist()
-        for member in members:
-            target = (reports / member).resolve()
+        members = bundle.infolist()
+        for info in members:
+            target = (reports / info.filename).resolve()
             if target != reports_root and reports_root not in target.parents:
-                raise RuntimeError(f"fixture archive path escapes reports: {member}")
-        bundle.extractall(reports)
+                raise RuntimeError(f"fixture archive path escapes reports: {info.filename}")
+            if info.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with bundle.open(info) as source, target.open("wb") as destination:
+                copyfileobj(source, destination)
 
     if not marker.is_file():
         raise RuntimeError(f"CI report fixture archive did not restore marker: {marker}")
