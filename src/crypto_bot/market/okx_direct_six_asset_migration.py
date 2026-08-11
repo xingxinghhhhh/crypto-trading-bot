@@ -18,6 +18,7 @@ from crypto_bot.market.dataset_registry import (
     audit_dataset_registry,
     canonical_ohlcv_sha256,
     load_dataset_registry,
+    normalize_dataset_registry_audit_paths,
 )
 from crypto_bot.market.okx_universe_history_extension import (
     DEFAULT_CONTRACT,
@@ -460,10 +461,15 @@ def validate_okx_direct_six_asset_1h_migration(
         raise MarketDataError("okx_direct_six_config_hash_mismatch")
     registry_audit_path = _sibling(path, registry_info.get("audit_filename"))
     panel_audit_path = _sibling(path, panel_info.get("audit_filename"))
+    frozen_registry_audit = normalize_dataset_registry_audit_paths(
+        _load_json(registry_audit_path, "okx_direct_six_invalid_registry_audit"), repo
+    )
+    observed_registry_audit = normalize_dataset_registry_audit_paths(
+        audit_dataset_registry(registry_path), repo
+    )
     if (
         _sha256(registry_audit_path) != registry_info.get("audit_sha256")
-        or _load_json(registry_audit_path, "okx_direct_six_invalid_registry_audit")
-        != audit_dataset_registry(registry_path)
+        or frozen_registry_audit != observed_registry_audit
     ):
         raise MarketDataError("okx_direct_six_registry_replay_mismatch")
     panel = build_dataset_panel(registry_path, panels_path, config["target_panel_id"])

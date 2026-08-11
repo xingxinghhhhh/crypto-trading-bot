@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -160,6 +161,52 @@ def audit_dataset_registry(
     if export_path is not None:
         write_json_atomically(export_path, payload)
     return payload
+
+
+def normalize_dataset_registry_audit_paths(
+    payload: dict[str, Any],
+    repo_root: str | Path,
+) -> dict[str, Any]:
+    """Return an audit payload with host-specific filesystem paths normalized.
+
+    Frozen audit reports are generated on one host and replayed on another in
+    CI.  The quality report includes absolute ``csv_path`` values and the
+    top-level audit includes an absolute ``registry_path``; those values are
+    provenance metadata, not content identity.  Normalize them to stable
+    repository-relative paths before comparing a frozen report with a replay.
+    """
+
+    normalized = deepcopy(payload)
+    root = Path(repo_root).resolve()
+    registry_path = normalized.get("registry_path")
+    if isinstance(registry_path, str):
+        normalized["registry_path"] = _portable_audit_path(registry_path, root)
+    for dataset in normalized.get("datasets", []):
+        if not isinstance(dataset, dict):
+            continue
+        observed = dataset.get("observed")
+        if isinstance(observed, dict) and isinstance(observed.get("csv_path"), str):
+            observed["csv_path"] = _portable_audit_path(observed["csv_path"], root)
+    return normalized
+
+
+def _portable_audit_path(value: str, repo_root: Path) -> str:
+    text = value.replace("\\", "/")
+    root_text = repo_root.as_posix().rstrip("/")
+    if text == root_text:
+        return "."
+    prefix = f"{root_text}/"
+    if text.startswith(prefix):
+        return text[len(prefix) :]
+
+    # A frozen Windows report can carry a different drive/root than the
+    # current runner.  Recognize repository-owned path anchors without
+    # guessing at arbitrary external paths.
+    for anchor in ("data/", "downloads/", "reports/", "promoted-registry", "promoted-panels"):
+        index = text.lower().find(anchor.lower())
+        if index >= 0:
+            return text[index:]
+    return text
 
 
 def format_dataset_registry_audit(payload: dict[str, Any]) -> str:

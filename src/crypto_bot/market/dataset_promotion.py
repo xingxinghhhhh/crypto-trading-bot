@@ -21,6 +21,7 @@ from crypto_bot.market.dataset_registry import (
     audit_dataset_registry,
     canonical_ohlcv_sha256,
     load_dataset_registry,
+    normalize_dataset_registry_audit_paths,
 )
 from crypto_bot.market.okx_universe_intake import (
     OkxUniverseValidatedIntake,
@@ -162,8 +163,13 @@ def validate_dataset_promotion_report(
     if panel_audit_artifact.get("filename") != promoted_panel.get("audit_filename"):
         raise MarketDataError("promotion_panel_audit_identity_mismatch")
 
-    observed_registry_audit = audit_dataset_registry(registry_path)
-    if _load_json_mapping(registry_audit_path, "promotion_invalid_registry_audit") != observed_registry_audit:
+    observed_registry_audit = normalize_dataset_registry_audit_paths(
+        audit_dataset_registry(registry_path), repo_root
+    )
+    frozen_registry_audit = normalize_dataset_registry_audit_paths(
+        _load_json_mapping(registry_audit_path, "promotion_invalid_registry_audit"), repo_root
+    )
+    if frozen_registry_audit != observed_registry_audit:
         raise MarketDataError("promotion_registry_audit_replay_mismatch")
     config = _required_mapping(identity.get("config"), "promotion_config")
     panel_result = build_dataset_panel(
