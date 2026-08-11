@@ -50,7 +50,14 @@ def restore_report_fixtures() -> None:
 
     missing = [name for name in _REQUIRED_REPORT_DIRS if not any((reports / name).glob("*.json"))]
     if missing:
-        raise RuntimeError(f"CI report fixture archive is missing required directories: {missing}")
+        sample = sorted(
+            path.relative_to(reports).as_posix()
+            for path in reports.rglob("*.json")
+        )[:20]
+        raise RuntimeError(
+            f"CI report fixture archive is missing required directories: {missing}; "
+            f"restored JSON sample: {sample}"
+        )
 
 
 if __name__ == "__main__":
