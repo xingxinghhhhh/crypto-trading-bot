@@ -19,6 +19,10 @@ _REQUIRED_REPORT_DIRS = (
     "prospective-membership-epoch-smoke",
 )
 _REQUIRED_RUNTIME_FILES = (
+    "promoted-panels-1h.9e5a03f60327ce77a417471f513c256b740bf440e2bfa950d953a937ca068ff0.yaml",
+    "promoted-panels.c18a99849be5f3eb92dd329f9073ea9a5260d16bddb7aac4b635b5f30d1dc1ae.yaml",
+    "promoted-registry-1h.51ebbf3f97658fa8f36e5cd8f37742047727887957b347ba0399459b9de22975.yaml",
+    "promoted-registry.cf3ecbc7cb7c84b3e127568acb65b26597c07fb79e45c6a350ea67395587a42f.yaml",
     "data/promoted/okx_direct_six_v1/1h/okx_btc_usdt_1h_direct_frozen.37d3af3a57ca833b84573ef3f91c453fd517320f6d6e90c06199432264cc9a9b.csv",
     "data/promoted/okx_direct_six_v1/1h/okx_eth_usdt_1h_direct_frozen.90983727ba098070a6c798725790d4907ef7d9e8eb6d7f59510f202bae49a036.csv",
     "data/promoted/okx_direct_six_v1/1h/okx_sol_usdt_1h_direct_frozen.0df16980c25528c82f6e5589619c04b93992b18f30801537a959b53389f381b7.csv",
