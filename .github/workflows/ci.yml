@@ -73,6 +73,7 @@ jobs:
           src/crypto_bot/prospective_epoch_closeout_rollover.py
           src/crypto_bot/market/prospective_snapshot_transition_admission.py
           src/crypto_bot/market/prospective_snapshot_transition_materializer.py
+          src/crypto_bot/market/prospective_membership_epoch_materializer.py
           src/crypto_bot/prospective_portfolio_ledger.py
           src/crypto_bot/prospective_economic_accounting_contract.py
           src/crypto_bot/market/legacy_timestamp_mapping_audit.py

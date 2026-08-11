@@ -1172,6 +1172,31 @@ content-addressed marker, and the validator recomputes the rows before
 accepting it. This does not create a membership gate, add samples, calculate
 economics/PnL, or change readiness.
 
+Materialize the next transition-gated membership epoch only from validated
+parents:
+
+```bash
+python -m crypto_bot.cli materialize-prospective-membership-epoch \
+    --snapshot-transition reports/prospective-snapshot-transition/prospective-snapshot-transition.<transition_sha>.json \
+    --previous-membership-gate reports/prospective-membership-bar-gate/prospective-membership-bar-gate.<gate_sha>.json \
+    --segment-chain reports/prospective-direct-1h-segment-chain/prospective-direct-1h-segment-chain.<chain_sha>.json \
+    --config config.prospective-membership-epoch-materializer.example.yaml \
+    --output-dir reports/prospective-membership-epoch
+```
+
+The transition marker is the only source of the next snapshot and its
+`received_at`; the previous gate and append-only segment chain are validated
+before any rows are derived. A pending or missed transition produces
+`blocked_transition_not_materialized` with zero membership rows. An admitted,
+materialized synthetic transition opens `epoch-0002` at the first full 1h bar
+at or after the new snapshot, emits six future membership rows and one timing
+row, and leaves `epoch_end_resolved=false` until a future snapshot exists. The
+previous closed gate is never rewritten, and no membership row grants sample
+credit. All outputs are content-addressed, marker-last, and replay-validated;
+manual snapshot/received-at/membership overrides, retroactive starts,
+replacement, backfill, economic/PnL/readiness changes, and network activity
+are rejected.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness

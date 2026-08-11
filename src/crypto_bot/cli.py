@@ -116,6 +116,10 @@ from crypto_bot.market.prospective_snapshot_transition_materializer import (
     format_prospective_snapshot_transition_materialization,
     materialize_prospective_snapshot_transition,
 )
+from crypto_bot.market.prospective_membership_epoch_materializer import (
+    format_prospective_membership_epoch_materialization,
+    materialize_prospective_membership_epoch,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -768,6 +772,19 @@ def main() -> None:
     )
     snapshot_materializer_parser.add_argument(
         "--output-dir", default="reports/prospective-snapshot-transition"
+    )
+
+    membership_epoch_parser = subparsers.add_parser(
+        "materialize-prospective-membership-epoch"
+    )
+    membership_epoch_parser.add_argument("--snapshot-transition", required=True)
+    membership_epoch_parser.add_argument("--previous-membership-gate", required=True)
+    membership_epoch_parser.add_argument("--segment-chain", required=True)
+    membership_epoch_parser.add_argument(
+        "--config", default="config.prospective-membership-epoch-materializer.example.yaml"
+    )
+    membership_epoch_parser.add_argument(
+        "--output-dir", default="reports/prospective-membership-epoch"
     )
 
     normalize_parser = subparsers.add_parser("normalize-csv")
@@ -1423,6 +1440,23 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_prospective_snapshot_transition_materialization(snapshot_materialization_result))
         for artifact_name, artifact_path in snapshot_materialization_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "materialize-prospective-membership-epoch":
+        try:
+            membership_epoch_result = materialize_prospective_membership_epoch(
+                args.snapshot_transition,
+                args.previous_membership_gate,
+                args.segment_chain,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_membership_epoch_materialization_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_membership_epoch_materialization(membership_epoch_result))
+        for artifact_name, artifact_path in membership_epoch_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 
