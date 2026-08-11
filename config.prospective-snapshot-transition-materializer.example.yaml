@@ -1,0 +1,15 @@
+schema_version: 1
+policy_id: prospective_snapshot_transition_materializer_v1
+required_admission_status: admitted
+required_transition_admission_eligible: true
+transition_source: validated_admission_pair
+materialization_mode: future_only_snapshot_transition
+manual_snapshot_override_prohibited: true
+membership_action_override_prohibited: true
+historical_backfill_prohibited: true
+automatic_replacement: false
+sample_threshold: 500
+new_samples_counted: 0
+economic_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false

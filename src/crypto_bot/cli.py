@@ -112,6 +112,10 @@ from crypto_bot.market.prospective_snapshot_transition_admission import (
     freeze_prospective_snapshot_transition_admission,
     format_prospective_snapshot_transition_admission,
 )
+from crypto_bot.market.prospective_snapshot_transition_materializer import (
+    format_prospective_snapshot_transition_materialization,
+    materialize_prospective_snapshot_transition,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -755,6 +759,17 @@ def main() -> None:
         "--output-dir", default="reports/prospective-snapshot-transition-admission"
     )
 
+    snapshot_materializer_parser = subparsers.add_parser(
+        "materialize-prospective-snapshot-transition"
+    )
+    snapshot_materializer_parser.add_argument("--transition-admission", required=True)
+    snapshot_materializer_parser.add_argument(
+        "--config", default="config.prospective-snapshot-transition-materializer.example.yaml"
+    )
+    snapshot_materializer_parser.add_argument(
+        "--output-dir", default="reports/prospective-snapshot-transition"
+    )
+
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
     normalize_parser.add_argument("--output", default="data/BTC_USDT_1h.csv")
@@ -1393,6 +1408,21 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_prospective_snapshot_transition_admission(snapshot_admission_result))
         for artifact_name, artifact_path in snapshot_admission_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "materialize-prospective-snapshot-transition":
+        try:
+            snapshot_materialization_result = materialize_prospective_snapshot_transition(
+                args.transition_admission,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_snapshot_transition_materialization_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prospective_snapshot_transition_materialization(snapshot_materialization_result))
+        for artifact_name, artifact_path in snapshot_materialization_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

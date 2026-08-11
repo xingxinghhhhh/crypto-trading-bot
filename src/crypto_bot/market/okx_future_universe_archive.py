@@ -106,18 +106,7 @@ def audit_okx_future_universe_transition(
     current = validate_future_universe_snapshot(current_snapshot, archive_config_path)
     if _repo_root(current.report_path) != repo:
         raise MarketDataError("okx_future_transition_repo_mismatch")
-    if current.report["identity"]["baseline_capture_sha256"] != config["baseline_capture_sha256"]:
-        raise MarketDataError("okx_future_transition_baseline_mismatch")
-    if previous.report["identity"]["policy_file_sha256"] != current.report["identity"]["policy_file_sha256"]:
-        raise MarketDataError("okx_future_transition_policy_mismatch")
-    if current.report["identity"]["received_at"] <= previous.report["identity"]["received_at"]:
-        raise MarketDataError("okx_future_transition_order_mismatch")
-    changes = _changes(previous.eligibility, current.eligibility)
-    tracked = _transition_tracked(previous.tracked, current.tracked)
-    policy_rows = [
-        {"key": key, "value": json.dumps(value, ensure_ascii=False, sort_keys=True)}
-        for key, value in _flatten(config).items()
-    ]
+    changes, tracked, policy_rows = build_future_universe_transition_rows(previous, current, config)
     changes_bytes = _csv_bytes(changes, CHANGE_FIELDS)
     tracked_bytes = _csv_bytes(tracked, TRACKED_FIELDS)
     policy_bytes = _csv_bytes(policy_rows, POLICY_FIELDS)
@@ -179,6 +168,32 @@ def audit_okx_future_universe_transition(
         report,
         {"changes": str(changes_path), "tracked": str(tracked_path), "policy": str(policy_path), "report": str(report_path)},
     )
+
+
+def build_future_universe_transition_rows(
+    previous: FutureUniverseSnapshot,
+    current: FutureUniverseSnapshot,
+    config: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, str]]]:
+    """Build canonical transition rows from already validated snapshots.
+
+    This is the shared pure diff seam for the legacy transition audit and the
+    prospective admission-gated materializer. It performs no I/O and does not
+    alter the established transition artifact identity.
+    """
+    if current.report["identity"]["baseline_capture_sha256"] != config["baseline_capture_sha256"]:
+        raise MarketDataError("okx_future_transition_baseline_mismatch")
+    if previous.report["identity"]["policy_file_sha256"] != current.report["identity"]["policy_file_sha256"]:
+        raise MarketDataError("okx_future_transition_policy_mismatch")
+    if current.report["identity"]["received_at"] <= previous.report["identity"]["received_at"]:
+        raise MarketDataError("okx_future_transition_order_mismatch")
+    changes = _changes(previous.eligibility, current.eligibility)
+    tracked = _transition_tracked(previous.tracked, current.tracked)
+    policy_rows = [
+        {"key": key, "value": json.dumps(value, ensure_ascii=False, sort_keys=True)}
+        for key, value in _flatten(config).items()
+    ]
+    return changes, tracked, policy_rows
 
 
 def validate_future_universe_snapshot(

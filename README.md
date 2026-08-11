@@ -1152,6 +1152,26 @@ content-addressed admission/dependency/constraint artifacts; no transition,
 network request, sample credit, economic/PnL calculation, or readiness change
 is performed.
 
+Materialize a canonical future-only snapshot transition only from an admitted
+pair:
+
+```bash
+python -m crypto_bot.cli materialize-prospective-snapshot-transition \
+    --transition-admission reports/prospective-snapshot-transition-admission/prospective-snapshot-transition-admission.<admission_sha>.json \
+    --config config.prospective-snapshot-transition-materializer.example.yaml \
+    --output-dir reports/prospective-snapshot-transition
+```
+
+The command accepts only the admission marker. It revalidates the admission,
+replays both snapshot markers, and calls the existing future-universe
+transition row builder; it never accepts previous/current snapshot or action
+overrides. Pending and missed admissions produce a deterministic blocked marker
+with zero change rows and no transition. An admitted synthetic pair produces
+changes/tracked/policy/dependency/constraint artifacts followed by a
+content-addressed marker, and the validator recomputes the rows before
+accepting it. This does not create a membership gate, add samples, calculate
+economics/PnL, or change readiness.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness
