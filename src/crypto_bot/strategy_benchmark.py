@@ -403,7 +403,14 @@ def _write_matrix_reports(rows: list[dict[str, Any]], output_dir: Path, stamp: s
                     "readiness_by_dataset": json.dumps(row["readiness_by_dataset"], ensure_ascii=False),
                 }
             )
-    json_path.write_text(json.dumps(matrix, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Keep the source rows alongside the summaries.  The matrix artifact is
+    # intentionally self-contained, and this also prevents consumers that
+    # discover ``strategy_benchmark_*.json`` files from mistaking the matrix
+    # artifact for an incomplete benchmark report.
+    json_path.write_text(
+        json.dumps({**matrix, "rows": rows}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     return {"csv_path": csv_path, "json_path": json_path, "matrix": matrix}
 
 
