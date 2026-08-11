@@ -1197,6 +1197,26 @@ manual snapshot/received-at/membership overrides, retroactive starts,
 replacement, backfill, economic/PnL/readiness changes, and network activity
 are rejected.
 
+Close an already-open future membership epoch only when a later validated
+snapshot transition supplies the closing boundary:
+
+```bash
+python -m crypto_bot.cli close-prospective-membership-epoch \
+    --open-membership-epoch reports/prospective-membership-epoch/prospective-membership-epoch.<epoch_sha>.json \
+    --next-snapshot-transition reports/prospective-snapshot-transition/prospective-snapshot-transition.<transition_sha>.json \
+    --config config.prospective-membership-epoch-closure.example.yaml \
+    --output-dir reports/prospective-membership-epoch-closure
+```
+
+Only an `open_pending_future_close` epoch and a later materialized `B→C`
+transition are accepted. The closure reuses the frozen 1h signal → completion
+→ execution offsets and keeps only execution anchors strictly before the next
+snapshot `received_at`; it never accepts manual boundary or timestamp
+overrides. The closed epoch membership rows remain byte-identical to the open
+epoch, `epoch_end_resolved=true`, and the structural closed-interval count is
+reported with `sample_credit=0`. Pending real parents remain blocked with zero
+rows, zero sample credit, and no network/economic/readiness work.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness
