@@ -124,6 +124,10 @@ from crypto_bot.market.prospective_membership_epoch_closure import (
     close_prospective_membership_epoch,
     format_prospective_membership_epoch_closure,
 )
+from crypto_bot.market.prospective_direct_1h_segment_admission import (
+    format_segment_admission_result,
+    freeze_prospective_direct_1h_segment_admission,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -801,6 +805,18 @@ def main() -> None:
     )
     membership_closure_parser.add_argument(
         "--output-dir", default="reports/prospective-membership-epoch-closure"
+    )
+
+    segment_admission_parser = subparsers.add_parser(
+        "freeze-prospective-direct-1h-segment-admission"
+    )
+    segment_admission_parser.add_argument("--membership-epoch-closure", required=True)
+    segment_admission_parser.add_argument("--segment-chain", required=True)
+    segment_admission_parser.add_argument(
+        "--config", default="config.prospective-direct-1h-segment-admission.example.yaml"
+    )
+    segment_admission_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-segment-admission"
     )
 
     normalize_parser = subparsers.add_parser("normalize-csv")
@@ -1489,6 +1505,22 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_prospective_membership_epoch_closure(membership_closure_result))
         for artifact_name, artifact_path in membership_closure_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-direct-1h-segment-admission":
+        try:
+            segment_admission_result = freeze_prospective_direct_1h_segment_admission(
+                args.membership_epoch_closure,
+                args.segment_chain,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_admission_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_segment_admission_result(segment_admission_result))
+        for artifact_name, artifact_path in segment_admission_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

@@ -34,7 +34,7 @@ jobs:
 
       - name: Mypy safety and research core
         run: >-
-          python -m mypy
+          python -m mypy --python-version ${{ matrix.python-version }}
           src/crypto_bot/config.py
           src/crypto_bot/cross_sectional_ic_calibration.py
           src/crypto_bot/cross_sectional_oos_stability.py
@@ -75,6 +75,7 @@ jobs:
           src/crypto_bot/market/prospective_snapshot_transition_materializer.py
           src/crypto_bot/market/prospective_membership_epoch_materializer.py
           src/crypto_bot/market/prospective_membership_epoch_closure.py
+          src/crypto_bot/market/prospective_direct_1h_segment_admission.py
           src/crypto_bot/prospective_portfolio_ledger.py
           src/crypto_bot/prospective_economic_accounting_contract.py
           src/crypto_bot/market/legacy_timestamp_mapping_audit.py

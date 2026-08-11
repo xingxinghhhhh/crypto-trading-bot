@@ -1217,6 +1217,25 @@ epoch, `epoch_end_resolved=true`, and the structural closed-interval count is
 reported with `sample_credit=0`. Pending real parents remain blocked with zero
 rows, zero sample credit, and no network/economic/readiness work.
 
+Freeze the next Direct-OKX 1h segment request only from a validated closed
+membership epoch and the append-only segment-chain tail:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-direct-1h-segment-admission \
+    --membership-epoch-closure reports/prospective-membership-epoch-closure/prospective-membership-epoch-closure.<closure_sha>.json \
+    --segment-chain reports/prospective-direct-1h-segment-chain/prospective-direct-1h-segment-chain.<chain_sha>.json \
+    --config config.prospective-direct-1h-segment-admission.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-admission
+```
+
+This command is a request contract, not a capture command. It derives segment
+start from `next_canonical_segment_start`, segment end from the closed epoch's
+last execution anchor, and the fixed six-asset order. A blocked real closure
+produces no request or asset rows; a synthetic closed epoch produces the
+content-addressed window specification with `capture_performed=false`. No
+HTTP request, OHLCV, segment append, sample credit, economic/PnL, or readiness
+operation is performed.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness
