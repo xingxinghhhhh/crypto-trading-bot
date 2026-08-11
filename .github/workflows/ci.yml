@@ -26,6 +26,9 @@ jobs:
       - name: Install project
         run: python -m pip install -U pip && python -m pip install -e ".[dev]"
 
+      - name: Restore report-backed integration fixtures
+        run: python tests/restore_ci_report_fixtures.py
+
       - name: Safety source scan
         run: python -m pytest tests/test_source_safety_scan.py tests/test_live_trading_guard.py -q
 
