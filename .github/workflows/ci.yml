@@ -69,6 +69,7 @@ jobs:
           src/crypto_bot/market/prospective_capture_attempt_journal.py
           src/crypto_bot/market/prospective_capture_attempt_receipt_chain.py
           src/crypto_bot/market/prospective_capture_attempt_evidence_adapter.py
+          src/crypto_bot/market/prospective_capture_window_closeout.py
           src/crypto_bot/prospective_portfolio_ledger.py
           src/crypto_bot/prospective_economic_accounting_contract.py
           src/crypto_bot/market/legacy_timestamp_mapping_audit.py

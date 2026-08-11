@@ -100,6 +100,10 @@ from crypto_bot.market.prospective_capture_attempt_evidence_adapter import (
     format_receipt_materialization_result,
     materialize_prospective_capture_attempt_receipt,
 )
+from crypto_bot.market.prospective_capture_window_closeout import (
+    audit_prospective_capture_window_closeout,
+    format_capture_window_closeout_result,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -704,6 +708,19 @@ def main() -> None:
         "--output-dir", default="reports/prospective-capture-attempt-evidence-adapter"
     )
 
+    capture_window_closeout_parser = subparsers.add_parser(
+        "audit-prospective-capture-window-closeout"
+    )
+    capture_window_closeout_parser.add_argument("--receipt-chain", required=True)
+    capture_window_closeout_parser.add_argument("--admission-ticket", required=True)
+    capture_window_closeout_parser.add_argument("--closeout-evidence", required=True)
+    capture_window_closeout_parser.add_argument(
+        "--config", default="config.prospective-capture-window-closeout.example.yaml"
+    )
+    capture_window_closeout_parser.add_argument(
+        "--output-dir", default="reports/prospective-capture-window-closeout"
+    )
+
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
     normalize_parser.add_argument("--output", default="data/BTC_USDT_1h.csv")
@@ -1291,6 +1308,23 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_receipt_materialization_result(materialization_result))
         for artifact_name, artifact_path in materialization_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "audit-prospective-capture-window-closeout":
+        try:
+            closeout_result = audit_prospective_capture_window_closeout(
+                args.receipt_chain,
+                args.admission_ticket,
+                args.closeout_evidence,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_capture_window_closeout_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_capture_window_closeout_result(closeout_result))
+        for artifact_name, artifact_path in closeout_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

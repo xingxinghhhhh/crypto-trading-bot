@@ -1,0 +1,15 @@
+schema_version: 1
+policy_id: prospective_capture_window_closeout_v1
+allowed_final_states:
+  - accepted_closed
+  - missed_no_backfill
+accepted_chain_closeout: accepted_closed
+unaccepted_chain_after_window_end: missed_no_backfill
+retry_after_window_end: false
+retroactive_receipt_prohibited: true
+missed_window_backfill_prohibited: true
+schedule_shift_after_miss: false
+sample_threshold: 500
+economic_computation_authorized: false
+pnl_computation_authorized: false
+readiness_changed: false

@@ -1085,6 +1085,28 @@ parent, and derives the next attempt and previous receipt hash. Synthetic
 fixtures remain fixture-only; the real zero-receipt chain stays at 160/500
 with no network or economic state.
 
+Close the governed epoch-2 capture window using a minimal local evidence
+envelope. The closeout validator derives the final state from the validated
+receipt chain, admission ticket, frozen window, and `observed_at`; callers
+cannot provide `final_state`, `accepted`, `missed`, or a snapshot identity:
+
+```bash
+python -m crypto_bot.cli audit-prospective-capture-window-closeout \
+    --receipt-chain reports/prospective-capture-attempt-receipt-chain/prospective-capture-attempt-receipt-chain.<chain_sha>.json \
+    --admission-ticket reports/prospective-epoch-capture-admission/prospective-epoch-capture-admission.<ticket_sha>.json \
+    --closeout-evidence reports/prospective-capture-window-closeout/closeout-evidence.json \
+    --config config.prospective-capture-window-closeout.example.yaml \
+    --output-dir reports/prospective-capture-window-closeout
+```
+
+Before `2026-08-16T11:00:00Z`, an unaccepted chain remains
+`pending_window_end` and retryable. At or after the governed end, an
+`awaiting_attempt` or `retry_open` chain becomes `missed_no_backfill`; an
+`accepted_closed` chain remains accepted and keeps its first snapshot identity.
+Missed windows cannot receive retroactive receipts, snapshots, sample credit,
+or schedule shifts. The command is offline and does not change the real
+zero-receipt chain.
+
 The current prospective slice has 160 eligible closed intervals against the
 frozen minimum of 500, so the expected successful result is
 `sample_maturity_met=false` with 340 intervals remaining. Future readiness
