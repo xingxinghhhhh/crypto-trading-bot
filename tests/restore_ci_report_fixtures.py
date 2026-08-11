@@ -38,9 +38,10 @@ def restore_report_fixtures() -> None:
     with ZipFile(archive) as bundle:
         members = bundle.infolist()
         for info in members:
-            target = (reports / info.filename).resolve()
+            member = info.filename.replace("\\", "/")
+            target = (reports / member).resolve()
             if target != reports_root and reports_root not in target.parents:
-                raise RuntimeError(f"fixture archive path escapes reports: {info.filename}")
+                raise RuntimeError(f"fixture archive path escapes reports: {member}")
             if info.is_dir():
                 target.mkdir(parents=True, exist_ok=True)
                 continue
