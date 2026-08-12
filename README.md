@@ -1281,6 +1281,21 @@ economic, PnL, readiness, paper, or live trading work. A blocked segment
 evidence parent produces `blocked_segment_candidate_not_materialized` with zero
 asset rows.
 
+Freeze a dry-run transaction plan only after append admission is `admitted`:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-direct-1h-segment-append-plan \
+    --append-admission reports/prospective-direct-1h-segment-append-admission/<admission>.json \
+    --segment-chain reports/prospective-direct-1h-segment-chain/<chain>.json \
+    --config config.prospective-direct-1h-segment-append-plan.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-append-plan
+```
+
+The plan revalidates the current chain and rejects chain drift. It derives the
+planned segment count, tail, and next canonical start but never writes a new
+chain marker or performs an append. Blocked admission yields
+`blocked_append_admission_not_eligible` with no plan asset rows.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash
