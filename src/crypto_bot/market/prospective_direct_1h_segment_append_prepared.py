@@ -194,8 +194,28 @@ def _ready_state(plan: Mapping[str, Any], chain: Mapping[str, Any], plan_path: P
         raise MarketDataError("prepared segment ordinal discontinuity")
     proposed_count = len(segments)
     next_start = (_parse_iso(candidate_end) + timedelta(hours=1)).isoformat().replace("+00:00", "Z")
-    proposed_identity = {"schema_version": SCHEMA_VERSION, "source_chain_identity": chain["chain_sha256"], "candidate_identity": plan["candidate_identity"], "segments": segments, "proposed_segment_count": proposed_count, "proposed_chain_tail": candidate_end, "proposed_next_canonical_segment_start": next_start}
-    return {"append_plan_identity": str(plan["plan_sha256"]), "current_chain_identity": str(chain["chain_sha256"]), "candidate_identity": str(plan["candidate_identity"]), "current_segment_count": int(chain["segment_count"]), "proposed_segment_count": proposed_count, "proposed_chain_tail": candidate_end, "proposed_next_start": next_start, "expected_post_append_chain_identity": _digest(_canonical(proposed_identity)), "authoritative_pre_chain_identity": str(chain["chain_sha256"]), "authoritative_post_chain_identity": None, "expected_identity_only": True, "authoritative_identity_materialized": False, "existing_segment_rewrites": 0, "existing_segment_replacements": 0, "new_segment_count": 1, "prepared_chain_materialized": True, "status": READY_RESULT, "segments": segments, "assets": [{"segment_ordinal": candidate_ordinal, "inst_id": row["inst_id"], "canonical_sha256": row["candidate_canonical_sha256"], "bar_count": row["candidate_bar_count"], "start": candidate_start, "end": candidate_end} for row in plan_assets], "plan": plan}
+    return {"append_plan_identity": str(plan["plan_sha256"]), "current_chain_identity": str(chain["chain_sha256"]), "candidate_identity": str(plan["candidate_identity"]), "current_segment_count": int(chain["segment_count"]), "proposed_segment_count": proposed_count, "proposed_chain_tail": candidate_end, "proposed_next_start": next_start, "expected_post_append_chain_identity": recompute_proposed_post_identity(chain["chain_sha256"], plan["candidate_identity"], segments, proposed_count, candidate_end, next_start), "authoritative_pre_chain_identity": str(chain["chain_sha256"]), "authoritative_post_chain_identity": None, "expected_identity_only": True, "authoritative_identity_materialized": False, "existing_segment_rewrites": 0, "existing_segment_replacements": 0, "new_segment_count": 1, "prepared_chain_materialized": True, "status": READY_RESULT, "segments": segments, "assets": [{"segment_ordinal": candidate_ordinal, "inst_id": row["inst_id"], "canonical_sha256": row["candidate_canonical_sha256"], "bar_count": row["candidate_bar_count"], "start": candidate_start, "end": candidate_end} for row in plan_assets], "plan": plan}
+
+
+def recompute_proposed_post_identity(
+    source_chain_identity: str,
+    candidate_identity: str,
+    segments: Sequence[Mapping[str, Any]],
+    proposed_segment_count: int,
+    proposed_chain_tail: str,
+    proposed_next_canonical_segment_start: str,
+) -> str:
+    """Rebuild the prepared post-chain image using the single canonical algorithm."""
+    proposed_identity = {
+        "schema_version": SCHEMA_VERSION,
+        "source_chain_identity": source_chain_identity,
+        "candidate_identity": candidate_identity,
+        "segments": [dict(segment) for segment in segments],
+        "proposed_segment_count": proposed_segment_count,
+        "proposed_chain_tail": proposed_chain_tail,
+        "proposed_next_canonical_segment_start": proposed_next_canonical_segment_start,
+    }
+    return _digest(_canonical(proposed_identity))
 
 
 def _write_result(repo: Path, output_dir: str | Path, config: Mapping[str, Any], state: Mapping[str, Any]) -> PreparedSegmentResult:

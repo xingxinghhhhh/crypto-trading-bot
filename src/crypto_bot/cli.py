@@ -144,6 +144,10 @@ from crypto_bot.market.prospective_direct_1h_segment_append_prepared import (
     format_prepared_result,
     prepare_prospective_direct_1h_segment_append,
 )
+from crypto_bot.market.prospective_direct_1h_segment_append_preflight import (
+    format_preflight,
+    preflight_prospective_direct_1h_segment_append,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -880,6 +884,11 @@ def main() -> None:
     prepared_parser.add_argument(
         "--output-dir", default="reports/prospective-direct-1h-segment-append-prepared"
     )
+    preflight_parser = subparsers.add_parser("preflight-prospective-direct-1h-segment-append")
+    preflight_parser.add_argument("--prepared", required=True)
+    preflight_parser.add_argument("--segment-chain", required=True)
+    preflight_parser.add_argument("--config", default="config.prospective-direct-1h-segment-append-preflight.example.yaml")
+    preflight_parser.add_argument("--output-dir", default="reports/prospective-direct-1h-segment-append-preflight")
 
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
@@ -1648,6 +1657,17 @@ def main() -> None:
         print(format_prepared_result(prepared_result))
         for artifact_name, artifact_path in prepared_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "preflight-prospective-direct-1h-segment-append":
+        try:
+            preflight_result = preflight_prospective_direct_1h_segment_append(args.prepared, args.segment_chain, args.config, args.output_dir)
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_append_preflight_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_preflight(preflight_result))
+        for name, path in preflight_result.export_paths.items():
+            print(f"exported_{name}: {path}")
         raise SystemExit(0)
 
     if args.command == "capture-okx-frozen-universe-1h-history":
