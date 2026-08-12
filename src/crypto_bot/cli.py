@@ -132,6 +132,10 @@ from crypto_bot.market.prospective_direct_1h_segment_evidence import (
     format_segment_evidence_result,
     materialize_prospective_direct_1h_segment_evidence,
 )
+from crypto_bot.market.prospective_direct_1h_segment_append_admission import (
+    format_segment_append_admission_result,
+    freeze_prospective_direct_1h_segment_append_admission,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -833,6 +837,18 @@ def main() -> None:
     )
     segment_evidence_parser.add_argument(
         "--output-dir", default="reports/prospective-direct-1h-segment-evidence"
+    )
+
+    segment_append_admission_parser = subparsers.add_parser(
+        "freeze-prospective-direct-1h-segment-append-admission"
+    )
+    segment_append_admission_parser.add_argument("--segment-evidence", required=True)
+    segment_append_admission_parser.add_argument("--segment-chain", required=True)
+    segment_append_admission_parser.add_argument(
+        "--config", default="config.prospective-direct-1h-segment-append-admission.example.yaml"
+    )
+    segment_append_admission_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-segment-append-admission"
     )
 
     normalize_parser = subparsers.add_parser("normalize-csv")
@@ -1553,6 +1569,22 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_segment_evidence_result(segment_evidence_result))
         for artifact_name, artifact_path in segment_evidence_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-direct-1h-segment-append-admission":
+        try:
+            append_admission_result = freeze_prospective_direct_1h_segment_append_admission(
+                args.segment_evidence,
+                args.segment_chain,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_append_admission_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_segment_append_admission_result(append_admission_result))
+        for artifact_name, artifact_path in append_admission_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

@@ -1262,6 +1262,25 @@ rebuilds canonical CSV bytes, validates the 1H OHLCV window and exact six-asset
 counts, and emits an immutable candidate only. It never downloads data,
 appends the segment chain, credits samples, or changes economic/readiness gates.
 
+Before any future append operation, freeze an append-only admission against the
+current chain tail:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-direct-1h-segment-append-admission \
+    --segment-evidence reports/prospective-direct-1h-segment-evidence/<candidate>.json \
+    --segment-chain reports/prospective-direct-1h-segment-chain/<chain>.json \
+    --config config.prospective-direct-1h-segment-append-admission.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-append-admission
+```
+
+This is an admission contract only: it revalidates both immutable parents,
+checks the candidate starts exactly at the current chain's next canonical
+start, derives the next ordinal, and rejects stale or duplicate candidates.
+It never appends data, mutates the chain, credits samples, or performs network,
+economic, PnL, readiness, paper, or live trading work. A blocked segment
+evidence parent produces `blocked_segment_candidate_not_materialized` with zero
+asset rows.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash
