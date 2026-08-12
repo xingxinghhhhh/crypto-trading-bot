@@ -1243,6 +1243,25 @@ epochs may be supplied in chronological order; overlaps and unexplained gaps
 fail closed. This gate does not calculate returns, costs, capacity pass/fail,
 turnover, or PnL and never lowers the 500-interval policy based on results.
 
+Materialize a future segment candidate only after replaying the frozen request
+against local Direct-OKX capture evidence:
+
+```bash
+python -m crypto_bot.cli materialize-prospective-direct-1h-segment-evidence \
+    --segment-admission reports/prospective-direct-1h-segment-admission/prospective-direct-1h-segment-admission.<admission_sha>.json \
+    --capture-report reports/prospective-direct-1h-capture/prospective-direct-1h-capture.<capture_sha>.json \
+    --config config.prospective-direct-1h-segment-evidence.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-evidence
+```
+
+`--capture-report` is optional only when the admission is blocked; the blocked
+path emits a deterministic zero-row `blocked_segment_admission_not_eligible`
+marker and never reads capture evidence. An eligible admission requires the
+capture marker. The materializer independently replays raw OKX bundles,
+rebuilds canonical CSV bytes, validates the 1H OHLCV window and exact six-asset
+counts, and emits an immutable candidate only. It never downloads data,
+appends the segment chain, credits samples, or changes economic/readiness gates.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash
