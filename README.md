@@ -1296,6 +1296,21 @@ planned segment count, tail, and next canonical start but never writes a new
 chain marker or performs an append. Blocked admission yields
 `blocked_append_admission_not_eligible` with no plan asset rows.
 
+Prepare a non-authoritative shadow chain image for a ready plan:
+
+```bash
+python -m crypto_bot.cli prepare-prospective-direct-1h-segment-append \
+    --append-plan reports/prospective-direct-1h-segment-append-plan/<plan>.json \
+    --segment-chain reports/prospective-direct-1h-segment-chain/<chain>.json \
+    --config config.prospective-direct-1h-segment-append-prepared.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-append-prepared
+```
+
+The prepared image reuses the existing chain reference model, adds exactly one
+validated candidate reference, and computes an expected post-append identity.
+It is explicitly non-authoritative and cannot be promoted or used as the
+current chain. Blocked plans create no shadow rows and never mutate the chain.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash

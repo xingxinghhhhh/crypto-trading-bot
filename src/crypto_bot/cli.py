@@ -140,6 +140,10 @@ from crypto_bot.market.prospective_direct_1h_segment_append_plan import (
     format_segment_append_plan_result,
     freeze_prospective_direct_1h_segment_append_plan,
 )
+from crypto_bot.market.prospective_direct_1h_segment_append_prepared import (
+    format_prepared_result,
+    prepare_prospective_direct_1h_segment_append,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -865,6 +869,16 @@ def main() -> None:
     )
     segment_append_plan_parser.add_argument(
         "--output-dir", default="reports/prospective-direct-1h-segment-append-plan"
+    )
+
+    prepared_parser = subparsers.add_parser("prepare-prospective-direct-1h-segment-append")
+    prepared_parser.add_argument("--append-plan", required=True)
+    prepared_parser.add_argument("--segment-chain", required=True)
+    prepared_parser.add_argument(
+        "--config", default="config.prospective-direct-1h-segment-append-prepared.example.yaml"
+    )
+    prepared_parser.add_argument(
+        "--output-dir", default="reports/prospective-direct-1h-segment-append-prepared"
     )
 
     normalize_parser = subparsers.add_parser("normalize-csv")
@@ -1617,6 +1631,22 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_segment_append_plan_result(append_plan_result))
         for artifact_name, artifact_path in append_plan_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "prepare-prospective-direct-1h-segment-append":
+        try:
+            prepared_result = prepare_prospective_direct_1h_segment_append(
+                args.append_plan,
+                args.segment_chain,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_append_prepared_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_prepared_result(prepared_result))
+        for artifact_name, artifact_path in prepared_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 
