@@ -148,6 +148,10 @@ from crypto_bot.market.prospective_direct_1h_segment_append_preflight import (
     format_preflight,
     preflight_prospective_direct_1h_segment_append,
 )
+from crypto_bot.market.prospective_direct_1h_segment_append_authorization import (
+    authorize_prospective_direct_1h_segment_append,
+    format_authorization,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -889,6 +893,11 @@ def main() -> None:
     preflight_parser.add_argument("--segment-chain", required=True)
     preflight_parser.add_argument("--config", default="config.prospective-direct-1h-segment-append-preflight.example.yaml")
     preflight_parser.add_argument("--output-dir", default="reports/prospective-direct-1h-segment-append-preflight")
+    authorization_parser = subparsers.add_parser("freeze-prospective-direct-1h-segment-append-authorization")
+    authorization_parser.add_argument("--append-preflight", required=True)
+    authorization_parser.add_argument("--segment-evidence", required=True)
+    authorization_parser.add_argument("--config", default="config.prospective-direct-1h-segment-append-authorization.example.yaml")
+    authorization_parser.add_argument("--output-dir", default="reports/prospective-direct-1h-segment-append-authorization")
 
     normalize_parser = subparsers.add_parser("normalize-csv")
     normalize_parser.add_argument("--input", required=True)
@@ -1667,6 +1676,19 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_preflight(preflight_result))
         for name, path in preflight_result.export_paths.items():
+            print(f"exported_{name}: {path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-direct-1h-segment-append-authorization":
+        try:
+            authorization_result = authorize_prospective_direct_1h_segment_append(
+                args.append_preflight, args.segment_evidence, args.config, args.output_dir
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_direct_1h_segment_append_authorization_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_authorization(authorization_result))
+        for name, path in authorization_result.export_paths.items():
             print(f"exported_{name}: {path}")
         raise SystemExit(0)
 

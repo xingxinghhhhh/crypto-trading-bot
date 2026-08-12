@@ -183,6 +183,71 @@ def validate_prospective_direct_1h_segment_evidence(path: str | Path) -> dict[st
     return report
 
 
+def derive_prospective_direct_1h_segment_evidence_provenance(
+    path: str | Path,
+    validated_report: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Derive authorization provenance from the validated capture lineage.
+
+    The persisted segment-evidence marker intentionally has no source
+    taxonomy. This read-only helper derives only facts established by the
+    capture validator and keeps unknown/test-only sources non-public.
+    """
+    report = (
+        dict(validated_report)
+        if validated_report is not None
+        else validate_prospective_direct_1h_segment_evidence(path)
+    )
+    report_path = Path(path).resolve()
+    repo = _repo_root(report_path)
+    candidate_sha = report.get("candidate_sha256")
+    capture_sha = report.get("capture_sha256")
+    fixture_only = report.get("fixture_only") is True
+    market_evidence = report.get("market_evidence") is True
+    provenance: dict[str, Any] = {
+        "source_artifact_identity": str(candidate_sha or ""),
+        "source_capture_identity": str(capture_sha or ""),
+        "source_provider": "",
+        "source_mode": "",
+        "fixture_only": fixture_only,
+        "market_evidence": market_evidence,
+        "public_only": False,
+    }
+    if (
+        report.get("segment_candidate_materialized") is not True
+        or not isinstance(capture_sha, str)
+        or not _is_sha256(capture_sha)
+    ):
+        return provenance
+
+    capture_path = _locate_capture(repo, capture_sha)
+    identity = report.get("identity")
+    config = identity.get("policy") if isinstance(identity, dict) else None
+    if not isinstance(config, dict):
+        return provenance
+    capture = _validate_capture_lineage(capture_path, repo, config)
+    capture_report = capture.get("report")
+    capture_identity = capture_report.get("identity") if isinstance(capture_report, dict) else None
+    allowed_public_capture = (
+        fixture_only is False
+        and market_evidence is True
+        and isinstance(capture_report, dict)
+        and capture_report.get("capture_status") == CAPTURE_STATUS
+        and isinstance(capture_identity, dict)
+        and capture_identity.get("policy_id")
+        == "prospective_direct_1h_closed_epoch_extension_v1"
+        and capture_report.get("future_only_membership_evidence") is True
+        and capture_report.get("profitability_evidence") is False
+        and capture_report.get("pnl_computation_authorized") is False
+        and capture_report.get("readiness_changed") is False
+    )
+    if allowed_public_capture:
+        provenance["source_provider"] = "OKX"
+        provenance["source_mode"] = "public_only_market_data"
+        provenance["public_only"] = True
+    return provenance
+
+
 def load_segment_evidence_config(path: str | Path, repo: Path | None = None) -> dict[str, Any]:
     config_path = Path(path).resolve()
     if config_path.name != DEFAULT_CONFIG_FILENAME or not config_path.is_file():

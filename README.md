@@ -1331,6 +1331,26 @@ creates a segment, credits samples, performs network/economic/PnL work, or
 changes readiness. A blocked prepared image emits no post-state and a zero-row
 write-set; a parent race emits `blocked_authoritative_chain_drift`.
 
+Freeze the separate real-evidence authorization contract only after preflight
+and segment evidence have both been independently replay-validated:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-direct-1h-segment-append-authorization \
+    --append-preflight reports/prospective-direct-1h-segment-append-preflight/<preflight>.json \
+    --segment-evidence reports/prospective-direct-1h-segment-evidence/<candidate>.json \
+    --config config.prospective-direct-1h-segment-append-authorization.example.yaml \
+    --output-dir reports/prospective-direct-1h-segment-append-authorization
+```
+
+This gate binds exact candidate lineage to validator-derived public OKX
+provenance. A synthetic/fixture candidate, a blocked preflight, unknown or
+private provenance, or a candidate mismatch remains unauthorized. Missing
+validated public provenance is reported as
+`blocked_insufficient_validated_provenance`; the gate never guesses a source
+provider or mode. Even a
+future `append_authorization_ready` result is only a qualification contract:
+it does not append, mutate the chain, credit samples, or authorize trading.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash
