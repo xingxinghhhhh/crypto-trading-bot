@@ -19,6 +19,8 @@ _REQUIRED_REPORT_DIRS = (
     "okx-universe-capture",
     "prospective-capture-attempt-receipt-chain",
     "prospective-direct-1h-segment-append-authorization-smoke",
+    "prospective-direct-1h-segment-append-preflight-smoke",
+    "prospective-direct-1h-segment-evidence-smoke",
     "prospective-economic-readiness",
     "prospective-economic-sample-maturity",
     "prospective-epoch-assembly",
@@ -30,6 +32,8 @@ _REQUIRED_OPERATIONS_REPORTS = {
     "prospective-epoch-assembly": "prospective-epoch-assembly.674116b95e03705b478f285012148f0143c2ef82befccda5627ce2ab901bcc79.json",
     "prospective-economic-sample-maturity": "prospective-economic-sample-maturity.32cf37484013bf7ee5739016cf5ef54e935ee2ac4dfcb429266f24adc885a178.json",
     "prospective-economic-readiness": "prospective-economic-readiness.0f160960684cf5a4ed5e7636f59e863652a3c0f3087eadb3ed61091bb026f27b.json",
+    "prospective-direct-1h-segment-append-preflight-smoke": "prospective-direct-1h-segment-append-preflight.b70f686e3cd65bb2b617325f3fd9f623ac573e81df66f3ff1c8a42f49d9ab328.json",
+    "prospective-direct-1h-segment-evidence-smoke": "prospective-direct-1h-segment-evidence.64be9005ed29a64a93d8ae5a53f3a975a9376596245f960d877584f8093c423e.json",
     "prospective-direct-1h-segment-append-authorization-smoke": "prospective-direct-1h-segment-append-authorization.272c9ac3b5da943372af574d050b4ccd15cb6817c537fb6630bf896f2463e688.json",
 }
 _REQUIRED_RUNTIME_FILES = (
