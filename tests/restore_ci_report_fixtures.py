@@ -30,6 +30,7 @@ _REQUIRED_REPORT_DIRS = (
     "prospective-membership-epoch-smoke",
 )
 _REQUIRED_OPERATIONS_REPORTS = {
+    "prospective-evidence-operations-snapshot": "prospective-evidence-operations-snapshot.b424c38d8cb2347a567ce7c4608e31b2b1b1b0b65d61419a0db843b7374cc1d1.json",
     "prospective-epoch-assembly": "prospective-epoch-assembly.674116b95e03705b478f285012148f0143c2ef82befccda5627ce2ab901bcc79.json",
     "prospective-economic-sample-maturity": "prospective-economic-sample-maturity.32cf37484013bf7ee5739016cf5ef54e935ee2ac4dfcb429266f24adc885a178.json",
     "prospective-economic-readiness": "prospective-economic-readiness.0f160960684cf5a4ed5e7636f59e863652a3c0f3087eadb3ed61091bb026f27b.json",
@@ -79,7 +80,11 @@ def _artifact_references(value: object) -> Iterator[tuple[str, str]]:
     if isinstance(value, Mapping):
         filename = value.get("filename")
         digest = value.get("sha256")
-        if isinstance(filename, str) and isinstance(digest, str):
+        if (
+            isinstance(filename, str)
+            and isinstance(digest, str)
+            and not isinstance(value.get("directory"), str)
+        ):
             yield filename, digest
         for child in value.values():
             yield from _artifact_references(child)
@@ -99,6 +104,7 @@ def _validate_report_payload(
         raise RuntimeError(f"CI report fixture JSON is invalid: {report_name}") from exc
     if not isinstance(report, dict):
         raise RuntimeError(f"CI report fixture JSON is not an object: {report_name}")
+    _validate_parent_references(report, report_name, read_artifact)
     report_digest = PurePosixPath(report_name).stem.rsplit(".", 1)[-1]
     identity_digests = {
         value
@@ -115,9 +121,11 @@ def _validate_report_payload(
             continue
         seen.add(reference)
         safe_filename = _normalise_member(filename)
-        if "/" in safe_filename:
-            raise RuntimeError(f"CI report fixture artifact escapes family: {report_name}:{filename}")
-        artifact_name = f"{report_directory}/{safe_filename}"
+        artifact_name = (
+            safe_filename
+            if "/" in safe_filename
+            else f"{report_directory}/{safe_filename}"
+        )
         try:
             artifact_bytes = read_artifact(artifact_name)
         except KeyError as exc:
@@ -125,6 +133,34 @@ def _validate_report_payload(
         actual_digest = hashlib.sha256(artifact_bytes).hexdigest()
         if actual_digest != expected_digest:
             raise RuntimeError(f"CI report fixture artifact hash mismatch: {artifact_name}")
+
+
+def _validate_parent_references(
+    report: Mapping[str, object],
+    report_name: str,
+    read_artifact: Callable[[str], bytes],
+) -> None:
+    identity = report.get("identity")
+    if not isinstance(identity, Mapping):
+        return
+    parent_reports = identity.get("parent_reports")
+    if not isinstance(parent_reports, Mapping):
+        return
+    for key, value in parent_reports.items():
+        if not isinstance(value, Mapping):
+            continue
+        directory = value.get("directory")
+        filename = value.get("filename")
+        digest = value.get("sha256")
+        if not isinstance(directory, str) or not isinstance(filename, str) or not isinstance(digest, str):
+            raise RuntimeError(f"CI report fixture parent reference is invalid: {report_name}:{key}")
+        parent_name = _normalise_member(f"{directory}/{filename}")
+        if PurePosixPath(filename).stem.rsplit(".", 1)[-1] != digest:
+            raise RuntimeError(f"CI report fixture parent identity mismatch: {parent_name}")
+        try:
+            read_artifact(parent_name)
+        except KeyError as exc:
+            raise RuntimeError(f"CI report fixture parent is missing: {parent_name}") from exc
 
 
 def _validate_archive(archive: Path) -> None:
