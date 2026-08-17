@@ -220,11 +220,14 @@ def build_prospective_evidence_operations_snapshot(
     return _write_snapshot(repo, policy, parents, normalized, projection, parent_dirs, output_dir)
 
 
-def validate_prospective_evidence_operations_snapshot(path: str | Path) -> dict[str, Any]:
+def validate_prospective_evidence_operations_snapshot(
+    path: str | Path,
+    replay_root: str | Path | None = None,
+) -> dict[str, Any]:
     """Replay a snapshot and reject any manually changed projection or parent state."""
 
     report_path = Path(path).resolve()
-    repo = _repo_root(report_path)
+    repo = _resolve_replay_root(report_path, replay_root)
     if report_path.parent != (repo / "reports" / "prospective-evidence-operations-snapshot").resolve():
         raise MarketDataError("operations snapshot marker path escape")
     report = _load_json(report_path)
@@ -382,6 +385,17 @@ def _resolve_parent(repo: Path, value: Any, key: str) -> Path:
     if not path.is_file() or value.get("sha256") not in path.name:
         raise MarketDataError(f"operations snapshot parent identity:{key}")
     return path
+
+
+def _resolve_replay_root(report_path: Path, replay_root: str | Path | None) -> Path:
+    if replay_root is None:
+        return _repo_root(report_path)
+    root = Path(replay_root).resolve()
+    if not report_path.is_relative_to(root / "reports"):
+        raise MarketDataError("operations snapshot replay root escape")
+    if not (root / "pyproject.toml").is_file() or not (root / "src" / "crypto_bot").is_dir():
+        raise MarketDataError("operations snapshot replay root marker missing")
+    return root
 
 
 def _reports_output(repo: Path, output_dir: str | Path) -> Path:

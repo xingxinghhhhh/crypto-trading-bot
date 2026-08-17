@@ -1,0 +1,11 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_bundle_admission_v1
+exact_source_snapshot_identity_required: true
+source_projection_match_required: true
+stale_bundle_consumption_prohibited: true
+automatic_bundle_refresh_prohibited: true
+manual_currentness_override_prohibited: true
+bundle_mutation_prohibited: true
+state_mutation_prohibited: true
+authorization_escalation_prohibited: true
+network_activity_prohibited: true

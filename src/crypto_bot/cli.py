@@ -156,6 +156,14 @@ from crypto_bot.market.prospective_evidence_operations_snapshot import (
     build_prospective_evidence_operations_snapshot,
     format_operations_snapshot,
 )
+from crypto_bot.market.prospective_evidence_operations_bundle import (
+    build_prospective_evidence_operations_bundle,
+    format_operations_bundle,
+)
+from crypto_bot.market.prospective_evidence_operations_bundle_admission import (
+    format_operations_bundle_admission,
+    freeze_prospective_evidence_operations_bundle_admission,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -686,6 +694,31 @@ def main() -> None:
     )
     operations_snapshot_parser.add_argument(
         "--output-dir", default="reports/prospective-evidence-operations-snapshot"
+    )
+
+    operations_bundle_parser = subparsers.add_parser(
+        "build-prospective-evidence-operations-bundle"
+    )
+    operations_bundle_parser.add_argument("--operations-snapshot", required=True)
+    operations_bundle_parser.add_argument(
+        "--config", default="config.prospective-evidence-operations-bundle.example.yaml"
+    )
+    operations_bundle_parser.add_argument(
+        "--output-dir", default="artifacts/prospective-evidence-operations-bundle"
+    )
+
+    operations_bundle_admission_parser = subparsers.add_parser(
+        "freeze-prospective-evidence-operations-bundle-admission"
+    )
+    operations_bundle_admission_parser.add_argument("--operations-bundle", required=True)
+    operations_bundle_admission_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_bundle_admission_parser.add_argument(
+        "--config", default="config.prospective-evidence-operations-bundle-admission.example.yaml"
+    )
+    operations_bundle_admission_parser.add_argument(
+        "--output-dir", default="artifacts/prospective-evidence-operations-bundle-admission"
     )
 
     accumulation_parser = subparsers.add_parser(
@@ -1408,6 +1441,42 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_operations_snapshot(operations_snapshot_result))
         for artifact_name, artifact_path in operations_snapshot_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "build-prospective-evidence-operations-bundle":
+        try:
+            operations_bundle_result = build_prospective_evidence_operations_bundle(
+                args.operations_snapshot,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_evidence_operations_bundle_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_operations_bundle(operations_bundle_result))
+        for artifact_name, artifact_path in operations_bundle_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-evidence-operations-bundle-admission":
+        try:
+            operations_bundle_admission_result = (
+                freeze_prospective_evidence_operations_bundle_admission(
+                    args.operations_bundle,
+                    args.current_operations_snapshot,
+                    args.config,
+                    args.output_dir,
+                )
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_bundle_admission_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(format_operations_bundle_admission(operations_bundle_admission_result))
+        for artifact_name, artifact_path in operations_bundle_admission_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

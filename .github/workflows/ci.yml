@@ -64,6 +64,8 @@ jobs:
           src/crypto_bot/prospective_economic_readiness_gate.py
           src/crypto_bot/prospective_economic_sample_maturity_gate.py
           src/crypto_bot/market/prospective_evidence_operations_snapshot.py
+          src/crypto_bot/market/prospective_evidence_operations_bundle.py
+          src/crypto_bot/market/prospective_evidence_operations_bundle_admission.py
           src/crypto_bot/prospective_epoch_accumulation_policy.py
           src/crypto_bot/prospective_epoch_assembly_state_machine.py
           src/crypto_bot/cross_sectional_variant_preregistration.py

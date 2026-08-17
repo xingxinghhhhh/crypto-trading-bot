@@ -114,6 +114,42 @@ executable PnL. Reports always keep `readiness_changed=false` and
 `automatic_factor_approval=false`; factor evidence cannot automatically connect
 a strategy to long-running Paper, Demo, private APIs, or live trading.
 
+Create a portable, read-only handoff of a validated prospective-evidence
+operations snapshot:
+
+```bash
+python -m crypto_bot.cli build-prospective-evidence-operations-bundle \
+  --operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --config config.prospective-evidence-operations-bundle.example.yaml \
+  --output-dir artifacts/prospective-evidence-operations-bundle
+```
+
+The bundle resolver records only the minimal transitive set of artifacts that
+the existing validators actually consume. It preserves historical bytes,
+records SHA-256 inventory/dependency sidecars, and replays the snapshot from a
+staged payload without using the source `reports/` tree. The bundle is strictly
+offline and read-only: it cannot authorize capture, append, sample credit,
+economic/PnL computation, Paper, or live trading. Bundle output must remain
+outside the source `reports/` directory so later source validation cannot see
+its copied historical reports.
+
+Admit a bundle only when it is still current with a freshly validated operations
+snapshot:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-evidence-operations-bundle-admission \
+  --operations-bundle artifacts/prospective-evidence-operations-bundle/<bundle>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --config config.prospective-evidence-operations-bundle-admission.example.yaml \
+  --output-dir artifacts/prospective-evidence-operations-bundle-admission
+```
+
+The gate emits `current_bundle_admitted` only for an exact snapshot-identity
+and projection match. A valid but old bundle is emitted as
+`blocked_stale_bundle`; it is never silently refreshed or granted authorization.
+This admission result still does not authorize append, economic/PnL, Paper, or
+live execution.
+
 Run one Live Shadow observation:
 
 ```bash

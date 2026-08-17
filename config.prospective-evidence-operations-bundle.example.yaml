@@ -1,0 +1,13 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_bundle_v1
+minimal_transitive_closure_required: true
+offline_replay_required: true
+content_addressed_payload_required: true
+original_artifact_bytes_required: true
+absolute_paths_prohibited: true
+undeclared_payload_files_prohibited: true
+external_replay_dependency_prohibited: true
+read_only: true
+authorization_escalation_prohibited: true
+state_mutation_prohibited: true
+network_activity_prohibited: true
