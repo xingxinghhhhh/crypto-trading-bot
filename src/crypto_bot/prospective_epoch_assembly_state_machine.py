@@ -92,6 +92,84 @@ def format_epoch_assembly_result(result: EpochAssemblyResult) -> str:
     return "\n".join((f"contract_status: {report['contract_status']}", f"assembly_sha256: {report['assembly_sha256']}", f"current_state: {report['current_state']}", f"next_epoch_ordinal: {report['next_epoch_ordinal']}", f"next_capture_window_start: {report['next_capture_window_start']}", f"next_capture_window_end: {report['next_capture_window_end']}", f"expected_previous_snapshot: {report['expected_previous_snapshot']}", f"expected_next_market_segment_start: {report['expected_next_market_segment_start']}", "market_segment_end_resolved: false", "current_samples: 160", "remaining_samples: 340", "new_samples_counted: 0", "epoch_2_countable: false", "economic_computation_authorized: false", "trading_readiness_changed: false"))
 
 
+def validate_epoch_assembly_state_machine(path: str | Path) -> dict[str, Any]:
+    """Replay one immutable epoch-assembly marker without creating artifacts."""
+
+    report_path = Path(path).resolve()
+    repo = _repo_root(report_path)
+    if report_path.parent != (repo / "reports" / "prospective-epoch-assembly").resolve():
+        raise MarketDataError("epoch assembly marker path escape")
+    report = _load_json(report_path)
+    assembly_sha = report.get("assembly_sha256")
+    identity = report.get("identity")
+    if (
+        report.get("schema_version") != SCHEMA_VERSION
+        or report.get("contract_status") != CONTRACT_STATUS
+        or not isinstance(assembly_sha, str)
+        or report_path.name != f"prospective-epoch-assembly.{assembly_sha}.json"
+        or not isinstance(identity, dict)
+        or _digest(_canonical_json_bytes(identity)) != assembly_sha
+    ):
+        raise MarketDataError("epoch assembly identity mismatch")
+    expected_identity = {
+        "schema_version": SCHEMA_VERSION,
+        "policy_id": POLICY_ID,
+        "accumulation_policy_sha256": POLICY_SHA,
+        "sample_maturity_sha256": MATURITY_SHA,
+        "latest_readiness_sha256": READINESS_SHA,
+        "segment_chain_sha256": CHAIN_SHA,
+        "next_epoch_ordinal": 2,
+        "current_state": STATES[0],
+        "expected_previous_snapshot_sha256": SNAPSHOT_SHA,
+        "expected_market_segment_end_status": "awaiting_future_membership_gate",
+    }
+    for key, expected in expected_identity.items():
+        if identity.get(key) != expected:
+            raise MarketDataError(f"epoch assembly identity field mismatch:{key}")
+    if (
+        report.get("current_state") != STATES[0]
+        or report.get("next_epoch_ordinal") != 2
+        or report.get("current_samples") != 160
+        or report.get("remaining_samples") != 340
+        or report.get("market_segment_end_resolved") is not False
+        or report.get("epoch_2_countable") is not False
+        or report.get("new_samples_counted") != 0
+        or report.get("economic_computation_authorized") is not False
+        or report.get("profitability_evidence") is not False
+        or report.get("trading_readiness_changed") is not False
+    ):
+        raise MarketDataError("epoch assembly state mismatch")
+    artifacts = report.get("artifacts")
+    identity_artifacts = identity.get("artifacts")
+    if not isinstance(artifacts, dict) or not isinstance(identity_artifacts, dict):
+        raise MarketDataError("epoch assembly artifacts missing")
+    expected_fields = {
+        "states": STATE_FIELDS,
+        "next_epoch": KEY_VALUE_FIELDS,
+        "protocol": KEY_VALUE_FIELDS,
+        "constraints": KEY_VALUE_FIELDS,
+    }
+    for name, fields in expected_fields.items():
+        info = artifacts.get(name)
+        expected_sha = identity_artifacts.get(f"{name}_sha256")
+        if not isinstance(info, dict) or info.get("sha256") != expected_sha:
+            raise MarketDataError(f"epoch assembly artifact metadata:{name}")
+        filename = info.get("filename")
+        if not isinstance(filename, str) or Path(filename).name != filename:
+            raise MarketDataError(f"epoch assembly artifact filename:{name}")
+        artifact_path = (report_path.parent / filename).resolve()
+        if artifact_path.parent != report_path.parent or not artifact_path.is_file() or _digest(artifact_path.read_bytes()) != expected_sha:
+            raise MarketDataError(f"epoch assembly artifact bytes:{name}")
+        with artifact_path.open(encoding="utf-8", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        header = tuple(rows[0].keys()) if rows else ()
+        if header != fields:
+            raise MarketDataError(f"epoch assembly artifact schema:{name}")
+        if info.get("row_count") != len(rows):
+            raise MarketDataError(f"epoch assembly artifact count:{name}")
+    return report
+
+
 def _validate_inputs(policy: dict[str, Any], maturity: dict[str, Any], readiness: dict[str, Any], chain: dict[str, Any], policy_path: Path, maturity_path: Path, readiness_path: Path, chain_path: Path) -> None:
     if policy.get("policy_sha256") != POLICY_SHA or _digest(_canonical_json_bytes(policy.get("identity", {}))) != POLICY_SHA or maturity.get("maturity_sha256") != MATURITY_SHA or readiness.get("readiness_sha256") != READINESS_SHA or chain.get("chain_sha256") != CHAIN_SHA:
         raise MarketDataError("epoch assembly input identity mismatch")

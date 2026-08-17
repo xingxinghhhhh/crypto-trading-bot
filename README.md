@@ -1351,6 +1351,29 @@ provider or mode. Even a
 future `append_authorization_ready` result is only a qualification contract:
 it does not append, mutate the chain, credit samples, or authorize trading.
 
+Build a single read-only operations handoff snapshot from the validated epoch,
+sample, authorization, and economic-readiness parents:
+
+```bash
+python -m crypto_bot.cli build-prospective-evidence-operations-snapshot \
+    --epoch-assembly reports/prospective-epoch-assembly/prospective-epoch-assembly.<assembly_sha>.json \
+    --sample-maturity reports/prospective-economic-sample-maturity/prospective-economic-sample-maturity.<maturity_sha>.json \
+    --append-authorization reports/prospective-direct-1h-segment-append-authorization-smoke/prospective-direct-1h-segment-append-authorization.<authorization_sha>.json \
+    --economic-readiness reports/prospective-economic-readiness/prospective-economic-readiness.<readiness_sha>.json \
+    --config config.prospective-evidence-operations-snapshot.example.yaml \
+    --output-dir reports/prospective-evidence-operations-snapshot
+```
+
+The snapshot is a deterministic operator handoff, not a scheduler or trading
+recommendation. It replays the four parent contracts and derives one
+`governed_stage`, `blocking_gate`, and `next_legal_action`, while keeping
+sample maturity, economic/PnL authorization, paper, and live permissions
+separate. The current real baseline remains at 160/500 with 340 intervals
+remaining and `awaiting_real_membership_epoch_progress`; all mutation,
+network, sample-credit, economic, PnL, paper, and live flags are false. The
+command has no manual stage/action/sample/authorization overrides, does not
+create market data, and does not add an HTTP API or frontend.
+
 Run the independent cross-sectional Rank IC evidence workflow on a frozen panel:
 
 ```bash

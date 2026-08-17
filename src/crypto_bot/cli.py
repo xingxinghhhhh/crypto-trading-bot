@@ -152,6 +152,10 @@ from crypto_bot.market.prospective_direct_1h_segment_append_authorization import
     authorize_prospective_direct_1h_segment_append,
     format_authorization,
 )
+from crypto_bot.market.prospective_evidence_operations_snapshot import (
+    build_prospective_evidence_operations_snapshot,
+    format_operations_snapshot,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -668,6 +672,20 @@ def main() -> None:
     )
     sample_maturity_parser.add_argument(
         "--output-dir", default="reports/prospective-economic-sample-maturity"
+    )
+
+    operations_snapshot_parser = subparsers.add_parser(
+        "build-prospective-evidence-operations-snapshot"
+    )
+    operations_snapshot_parser.add_argument("--epoch-assembly", required=True)
+    operations_snapshot_parser.add_argument("--sample-maturity", required=True)
+    operations_snapshot_parser.add_argument("--append-authorization", required=True)
+    operations_snapshot_parser.add_argument("--economic-readiness", required=True)
+    operations_snapshot_parser.add_argument(
+        "--config", default="config.prospective-evidence-operations-snapshot.example.yaml"
+    )
+    operations_snapshot_parser.add_argument(
+        "--output-dir", default="reports/prospective-evidence-operations-snapshot"
     )
 
     accumulation_parser = subparsers.add_parser(
@@ -1372,6 +1390,24 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_prospective_economic_sample_maturity(sample_maturity_result))
         for artifact_name, artifact_path in sample_maturity_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "build-prospective-evidence-operations-snapshot":
+        try:
+            operations_snapshot_result = build_prospective_evidence_operations_snapshot(
+                args.epoch_assembly,
+                args.sample_maturity,
+                args.append_authorization,
+                args.economic_readiness,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_evidence_operations_snapshot_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_operations_snapshot(operations_snapshot_result))
+        for artifact_name, artifact_path in operations_snapshot_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

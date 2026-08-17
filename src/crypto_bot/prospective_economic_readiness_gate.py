@@ -129,6 +129,100 @@ def format_prospective_economic_readiness(result: ProspectiveEconomicReadinessGa
     return "\n".join([f"contract_status: {report['contract_status']}", f"readiness_sha256: {report['readiness_sha256']}", "family_size: 36", "closed_interval_count: 160", "strategy_matrix_rows: 5760", "benchmark_matrix_rows: 160", "scenario_count: 9", "primary_scenario_count: 1", "missing_execution_open: 0", "missing_capacity_volume: 0", "terminal_scored_rows: 0", "prospective_economic_inputs_structurally_ready: true", "economic_value_computation_authorized: false", "trading_readiness_changed: false"])
 
 
+def validate_prospective_economic_readiness(path: str | Path) -> dict[str, Any]:
+    """Replay one immutable economic-readiness marker without writing reports."""
+
+    report_path = Path(path).resolve()
+    repo = _repo_root(report_path)
+    if report_path.parent != (repo / "reports" / "prospective-economic-readiness").resolve():
+        raise MarketDataError("readiness marker path escape")
+    report = _load_json(report_path)
+    readiness_sha = report.get("readiness_sha256")
+    identity = report.get("identity")
+    if (
+        report.get("schema_version") != SCHEMA_VERSION
+        or report.get("contract_status") != CONTRACT_STATUS
+        or not isinstance(readiness_sha, str)
+        or report_path.name != f"prospective-economic-readiness.{readiness_sha}.json"
+        or not isinstance(identity, dict)
+        or _digest(_canonical_json_bytes(identity)) != readiness_sha
+    ):
+        raise MarketDataError("readiness identity mismatch")
+    if (
+        identity.get("schema_version") != SCHEMA_VERSION
+        or identity.get("policy_id") != POLICY_ID
+        or identity.get("counts") != {"family_size": 36, "closed_interval_count": 160, "strategy_matrix_rows": 5760, "benchmark_matrix_rows": 160, "scenario_count": 9, "primary_scenario_count": 1}
+        or identity.get("flags", {}).get("prospective_economic_inputs_structurally_ready") is not True
+    ):
+        raise MarketDataError("readiness identity state mismatch")
+    if (
+        report.get("family_size") != 36
+        or report.get("closed_interval_count") != 160
+        or report.get("strategy_matrix_rows") != 5760
+        or report.get("benchmark_matrix_rows") != 160
+        or report.get("scenario_count") != 9
+        or report.get("primary_scenario_count") != 1
+        or report.get("prospective_economic_inputs_structurally_ready") is not True
+        or any(
+            report.get(key) is not False
+            for key in (
+                "economic_value_computation_authorized",
+                "turnover_computation_authorized",
+                "cost_amount_computation_authorized",
+                "capacity_pass_fail_authorized",
+                "return_computation_authorized",
+                "pnl_computation_authorized",
+                "profitability_evidence",
+                "trading_readiness_changed",
+            )
+        )
+    ):
+        raise MarketDataError("readiness state mismatch")
+    artifacts = report.get("artifacts")
+    identity_artifacts = identity.get("artifacts")
+    if not isinstance(artifacts, dict) or not isinstance(identity_artifacts, dict):
+        raise MarketDataError("readiness artifacts missing")
+    expected_rows = {"strategy_matrix": 5760, "benchmark_matrix": 160, "dependencies": 6, "constraints": 22}
+    for name, row_count in expected_rows.items():
+        info = artifacts.get(name)
+        expected_sha = identity_artifacts.get(f"{name}_sha256")
+        if not isinstance(info, dict) or info.get("sha256") != expected_sha:
+            raise MarketDataError(f"readiness artifact metadata:{name}")
+        filename = info.get("filename")
+        if not isinstance(filename, str) or Path(filename).name != filename:
+            raise MarketDataError(f"readiness artifact filename:{name}")
+        artifact_path = (report_path.parent / filename).resolve()
+        if artifact_path.parent != report_path.parent or not artifact_path.is_file() or _sha256(artifact_path) != expected_sha:
+            raise MarketDataError(f"readiness artifact bytes:{name}")
+        rows = _read_csv(artifact_path)
+        if len(rows) != row_count or info.get("row_count") != len(rows):
+            raise MarketDataError(f"readiness artifact count:{name}")
+    strategy = _read_csv(report_path.parent / artifacts["strategy_matrix"]["filename"])
+    benchmark = _read_csv(report_path.parent / artifacts["benchmark_matrix"]["filename"])
+    required_strategy = ("target_available", "start_open_available", "end_open_available", "capacity_volume_available", "membership_valid", "cost_contract_valid")
+    required_benchmark = ("start_open_available", "end_open_available", "capacity_volume_available", "cost_contract_valid")
+    if any(any(row.get(key) != "true" for key in required_strategy) for row in strategy) or any(any(row.get(key) != "true" for key in required_benchmark) for row in benchmark):
+        raise MarketDataError("readiness matrix state mismatch")
+    source_paths = (
+        repo / "reports/prospective-portfolio-ledger" / f"prospective-portfolio-ledger.{LEDGER_SHA256}.json",
+        repo / "reports/prospective-economic-accounting" / f"prospective-economic-accounting.{ACCOUNTING_SHA256}.json",
+        repo / "reports/prospective-economic-cost-scenarios" / f"prospective-economic-cost-scenarios.{SCENARIO_SHA256}.json",
+        repo / "reports/prospective-direct-1h-extension" / f"prospective-direct-1h-extension.{EXTENSION_SHA256}.json",
+        repo / "reports/prospective-membership-bar-gate" / f"prospective-membership-bar-gate.{MEMBERSHIP_SHA256}.json",
+        repo / "reports/okx-direct-six-1h-execution-mapping" / f"okx-direct-six-1h-execution-mapping.{MAPPING_SHA256}.json",
+    )
+    if any(not item.is_file() for item in source_paths):
+        raise MarketDataError("readiness source parent missing")
+    _pin_inputs(repo, *source_paths)
+    for validator, source in zip(
+        (_validate_ledger, _validate_accounting, _validate_scenarios, _validate_extension, _validate_membership, _validate_mapping),
+        source_paths,
+        strict=True,
+    ):
+        validator(source)
+    return report
+
+
 def _pin_inputs(repo: Path, *paths: Path) -> None:
     expected = (f"reports/prospective-portfolio-ledger/prospective-portfolio-ledger.{LEDGER_SHA256}.json", f"reports/prospective-economic-accounting/prospective-economic-accounting.{ACCOUNTING_SHA256}.json", f"reports/prospective-economic-cost-scenarios/prospective-economic-cost-scenarios.{SCENARIO_SHA256}.json", f"reports/prospective-direct-1h-extension/prospective-direct-1h-extension.{EXTENSION_SHA256}.json", f"reports/prospective-membership-bar-gate/prospective-membership-bar-gate.{MEMBERSHIP_SHA256}.json", f"reports/okx-direct-six-1h-execution-mapping/okx-direct-six-1h-execution-mapping.{MAPPING_SHA256}.json")
     if len(paths) != len(expected) or any(actual != (repo / rel).resolve() for actual, rel in zip(paths, expected, strict=True)):

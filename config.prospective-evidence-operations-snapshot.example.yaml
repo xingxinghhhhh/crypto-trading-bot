@@ -1,0 +1,16 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_snapshot_v1
+sample_threshold: 500
+market_evidence_required_for_append: true
+append_authorization_required: true
+sample_maturity_required_for_economic: true
+paper_requires_readiness: true
+live_requires_readiness: true
+state_mutation_prohibited: true
+network_activity_prohibited: true
+next_action_must_be_derived: true
+manual_stage_override_prohibited: true
+manual_next_action_override_prohibited: true
+manual_sample_override_prohibited: true
+manual_authorization_override_prohibited: true
+manual_readiness_override_prohibited: true

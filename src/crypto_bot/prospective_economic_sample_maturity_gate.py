@@ -114,6 +114,104 @@ def format_prospective_economic_sample_maturity(result: ProspectiveEconomicSampl
     return "\n".join([f"contract_status: {report['contract_status']}", f"maturity_sha256: {report['maturity_sha256']}", f"readiness_epoch_count: {report['readiness_epoch_count']}", "family_size: 36", f"unique_closed_interval_count: {report['unique_closed_interval_count']}", "minimum_closed_interval_count: 500", f"remaining_closed_interval_count: {report['remaining_closed_interval_count']}", "strategy_slots_count_as_samples: false", f"sample_maturity_met: {str(report['sample_maturity_met']).lower()}", f"prospective_economic_evaluation_authorizable: {str(report['prospective_economic_evaluation_authorizable']).lower()}", "readiness_changed: false"])
 
 
+def validate_prospective_economic_sample_maturity(path: str | Path) -> dict[str, Any]:
+    """Replay one immutable sample-maturity marker without writing reports."""
+
+    report_path = Path(path).resolve()
+    repo = _repo_root(report_path)
+    if report_path.parent != (repo / "reports" / "prospective-economic-sample-maturity").resolve():
+        raise MarketDataError("sample maturity marker path escape")
+    report = _load_json(report_path)
+    maturity_sha = report.get("maturity_sha256")
+    identity = report.get("identity")
+    if (
+        report.get("schema_version") != SCHEMA_VERSION
+        or report.get("contract_status") != CONTRACT_STATUS
+        or not isinstance(maturity_sha, str)
+        or report_path.name != f"prospective-economic-sample-maturity.{maturity_sha}.json"
+        or not isinstance(identity, dict)
+        or _digest(_canonical_json_bytes(identity)) != maturity_sha
+    ):
+        raise MarketDataError("sample maturity identity mismatch")
+    counts = identity.get("counts")
+    if not isinstance(counts, dict):
+        raise MarketDataError("sample maturity counts missing")
+    expected_counts = {
+        "readiness_epoch_count": report.get("readiness_epoch_count"),
+        "family_size": report.get("family_size"),
+        "unique_closed_interval_count": report.get("unique_closed_interval_count"),
+        "remaining_closed_interval_count": report.get("remaining_closed_interval_count"),
+        "strategy_slot_count_observed": report.get("strategy_slot_count_observed"),
+        "strategy_slots_count_as_samples": report.get("strategy_slots_count_as_samples"),
+    }
+    if any(counts.get(key) != value for key, value in expected_counts.items()):
+        raise MarketDataError("sample maturity count drift")
+    if (
+        identity.get("schema_version") != SCHEMA_VERSION
+        or identity.get("policy_id") != POLICY_ID
+        or identity.get("sample_unit") != "unique_closed_execution_interval"
+        or identity.get("minimum_closed_interval_count") != MINIMUM_INTERVALS
+        or report.get("family_size") != FAMILY_SIZE
+        or report.get("minimum_closed_interval_count") != MINIMUM_INTERVALS
+        or report.get("unique_closed_interval_count") != 160
+        or report.get("remaining_closed_interval_count") != 340
+        or report.get("sample_maturity_met") is not False
+        or report.get("prospective_economic_evaluation_authorizable") is not False
+        or report.get("profitability_evidence") is not False
+        or report.get("readiness_changed") is not False
+    ):
+        raise MarketDataError("sample maturity state mismatch")
+    authorization = identity.get("authorization")
+    if not isinstance(authorization, dict) or any(
+        authorization.get(key) not in (False, 0)
+        for key in (
+            "economic_value_computation_authorized",
+            "turnover_computation_authorized",
+            "cost_amount_computation_authorized",
+            "capacity_pass_fail_authorized",
+            "return_computation_authorized",
+            "pnl_computation_authorized",
+            "readiness_changed",
+        )
+    ):
+        raise MarketDataError("sample maturity authorization drift")
+    artifacts = report.get("artifacts")
+    identity_artifacts = identity.get("artifacts")
+    if not isinstance(artifacts, dict) or not isinstance(identity_artifacts, dict):
+        raise MarketDataError("sample maturity artifacts missing")
+    expected_counts_by_artifact = {"epochs": 1, "intervals": 160, "policy": 10, "constraints": 20}
+    for name in expected_counts_by_artifact:
+        info = artifacts.get(name)
+        expected_sha = identity_artifacts.get(f"{name}_sha256")
+        if not isinstance(info, dict) or info.get("sha256") != expected_sha:
+            raise MarketDataError(f"sample maturity artifact metadata:{name}")
+        filename = info.get("filename")
+        if not isinstance(filename, str) or Path(filename).name != filename:
+            raise MarketDataError(f"sample maturity artifact filename:{name}")
+        artifact_path = (report_path.parent / filename).resolve()
+        if artifact_path.parent != report_path.parent or not artifact_path.is_file() or _sha256(artifact_path) != expected_sha:
+            raise MarketDataError(f"sample maturity artifact bytes:{name}")
+        rows = _read_csv(artifact_path)
+        if len(rows) != expected_counts_by_artifact[name] or info.get("row_count") != len(rows):
+            raise MarketDataError(f"sample maturity artifact count:{name}")
+    readiness_reports = identity.get("readiness_reports")
+    if not isinstance(readiness_reports, list) or len(readiness_reports) != 1 or not isinstance(readiness_reports[0], dict):
+        raise MarketDataError("sample maturity readiness parent missing")
+    readiness_sha = readiness_reports[0].get("readiness_sha256")
+    marker_sha = readiness_reports[0].get("marker_sha256")
+    if not isinstance(readiness_sha, str) or not isinstance(marker_sha, str):
+        raise MarketDataError("sample maturity readiness parent identity missing")
+    readiness_path = repo / "reports" / "prospective-economic-readiness" / f"prospective-economic-readiness.{readiness_sha}.json"
+    if not readiness_path.is_file() or _sha256(readiness_path) != marker_sha:
+        raise MarketDataError("sample maturity readiness parent drift")
+    from crypto_bot.prospective_economic_readiness_gate import validate_prospective_economic_readiness
+
+    readiness = validate_prospective_economic_readiness(readiness_path)
+    if readiness.get("readiness_sha256") != readiness_sha:
+        raise MarketDataError("sample maturity readiness parent mismatch")
+    return report
+
+
 def _validate_readiness(path: Path, repo: Path) -> dict[str, Any]:
     report = _load_json(path)
     readiness_sha = report.get("readiness_sha256")
