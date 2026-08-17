@@ -1364,6 +1364,14 @@ python -m crypto_bot.cli build-prospective-evidence-operations-snapshot \
     --output-dir reports/prospective-evidence-operations-snapshot
 ```
 
+CI restores the report-backed replay inputs before test collection. The
+operations snapshot parents and their transitive content-addressed artifacts
+are kept in `tests/fixtures/ci-operations-reports.zip`; the restore step
+validates the four pinned parent identities, referenced artifact hashes, safe
+relative paths, and existing-byte collisions before pytest runs. A clean
+checkout therefore fails closed at restore time when a parent or dependency is
+missing or drifted, rather than surfacing a later generic JSON-read failure.
+
 The snapshot is a deterministic operator handoff, not a scheduler or trading
 recommendation. It replays the four parent contracts and derives one
 `governed_stage`, `blocking_gate`, and `next_legal_action`, while keeping

@@ -29,6 +29,9 @@ jobs:
       - name: Restore report-backed integration fixtures
         run: python tests/restore_ci_report_fixtures.py
 
+      - name: Validate operations snapshot fixture closure
+        run: python -m pytest tests/test_restore_ci_report_fixtures.py -q
+
       - name: Safety source scan
         run: python -m pytest tests/test_source_safety_scan.py tests/test_live_trading_guard.py -q
 

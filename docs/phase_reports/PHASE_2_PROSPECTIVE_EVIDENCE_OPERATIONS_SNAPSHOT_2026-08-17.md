@@ -63,3 +63,14 @@ The node adds only a new artifact family and minimal read-only validators for
 the existing assembly, maturity, and readiness markers. Existing parent marker
 schemas and identities are not rewritten. Rollback consists of stopping
 consumption of the operations-snapshot artifact family.
+
+## CI fixture closure
+
+The clean-checkout replay contract is now explicit. The four pinned parent
+markers and every artifact referenced by those markers are stored in
+`tests/fixtures/ci-operations-reports.zip`. `tests/restore_ci_report_fixtures.py`
+validates safe archive-relative paths, marker identity digests, referenced
+artifact existence and SHA-256 bytes, then restores idempotently while refusing
+to overwrite different existing bytes. The integrity tests also cover an empty
+destination, missing parents, transitive-artifact tampering, and cross-platform
+relative paths. No test creates a synthetic real-state report.
