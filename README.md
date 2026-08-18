@@ -169,6 +169,22 @@ neither result authorizes actions, mutation, network activity, Paper, or live
 trading. The manifest is a future operator/API/UI read contract, not an API or
 frontend implementation.
 
+Before a future operator, API, or UI consumes that manifest, verify its
+read-only lineage explicitly. The verification command never discovers a
+latest artifact, refreshes a stale bundle, or grants execution authority:
+
+```bash
+python -m crypto_bot.cli verify-prospective-evidence-operations-handoff-manifest \
+  --handoff-manifest artifacts/prospective-evidence-operations-handoff-manifest/<manifest>.json \
+  --bundle-admission artifacts/prospective-evidence-operations-bundle-admission/<admission>.json \
+  --operations-bundle artifacts/prospective-evidence-operations-bundle/<bundle>.json
+```
+
+Exit code `0` means only `safe_to_consume_read_only=true` after the existing
+manifest, bundle, and currentness validators replay successfully. Any missing,
+stale, tampered, or mismatched parent fails closed with a non-zero exit code;
+the machine-readable JSON remains a read barrier, not an execution gate.
+
 Run one Live Shadow observation:
 
 ```bash

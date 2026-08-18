@@ -168,6 +168,10 @@ from crypto_bot.market.prospective_evidence_operations_handoff_manifest import (
     build_prospective_evidence_operations_handoff_manifest,
     format_operations_handoff_manifest,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_verification import (
+    format_handoff_manifest_verification,
+    verify_prospective_evidence_operations_handoff_manifest,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -736,6 +740,13 @@ def main() -> None:
     operations_handoff_manifest_parser.add_argument(
         "--output-dir", default="artifacts/prospective-evidence-operations-handoff-manifest"
     )
+
+    operations_handoff_verification_parser = subparsers.add_parser(
+        "verify-prospective-evidence-operations-handoff-manifest"
+    )
+    operations_handoff_verification_parser.add_argument("--handoff-manifest", required=True)
+    operations_handoff_verification_parser.add_argument("--bundle-admission", required=True)
+    operations_handoff_verification_parser.add_argument("--operations-bundle", required=True)
 
     accumulation_parser = subparsers.add_parser(
         "freeze-prospective-epoch-accumulation-policy"
@@ -1515,6 +1526,19 @@ def main() -> None:
         print(format_operations_handoff_manifest(operations_handoff_manifest_result))
         for artifact_name, artifact_path in operations_handoff_manifest_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "verify-prospective-evidence-operations-handoff-manifest":
+        try:
+            verification_result = verify_prospective_evidence_operations_handoff_manifest(
+                args.handoff_manifest,
+                args.bundle_admission,
+                args.operations_bundle,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_evidence_operations_handoff_verification_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_handoff_manifest_verification(verification_result))
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-epoch-accumulation-policy":
