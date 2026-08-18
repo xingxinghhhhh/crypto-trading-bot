@@ -294,7 +294,9 @@ def test_sidecar_integrity_and_low_level_helpers_fail_closed(
     module._commit_bytes(same_path, b"same")
 
 
-def test_projection_reducer_rejects_inconsistent_parents(parents: dict[str, Path]) -> None:
+def test_projection_reducer_rejects_inconsistent_parents(
+    parents: dict[str, Path], tmp_path: Path
+) -> None:
     admission = json.loads(parents["admission"].read_text(encoding="utf-8"))
     bundle = json.loads(parents["bundle"].read_text(encoding="utf-8"))
     changed = dict(admission)
@@ -319,7 +321,7 @@ def test_projection_reducer_rejects_inconsistent_parents(parents: dict[str, Path
     with pytest.raises(module.MarketDataError, match="status invalid"):
         module._derive_manifest(changed, bundle)
     with pytest.raises(module.MarketDataError, match="repo root missing"):
-        module._repo_root(Path("Z:/missing-repo"))
+        module._repo_root(tmp_path / "missing-repo")
     with pytest.raises(module.MarketDataError, match="policy mismatch"):
         module._validate_policy({"policy_id": "wrong", "policy": {}})
     with pytest.raises(module.MarketDataError, match="authorization claims"):
