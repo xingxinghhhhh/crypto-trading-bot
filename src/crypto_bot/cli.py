@@ -164,6 +164,10 @@ from crypto_bot.market.prospective_evidence_operations_bundle_admission import (
     format_operations_bundle_admission,
     freeze_prospective_evidence_operations_bundle_admission,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_manifest import (
+    build_prospective_evidence_operations_handoff_manifest,
+    format_operations_handoff_manifest,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -719,6 +723,18 @@ def main() -> None:
     )
     operations_bundle_admission_parser.add_argument(
         "--output-dir", default="artifacts/prospective-evidence-operations-bundle-admission"
+    )
+
+    operations_handoff_manifest_parser = subparsers.add_parser(
+        "build-prospective-evidence-operations-handoff-manifest"
+    )
+    operations_handoff_manifest_parser.add_argument("--bundle-admission", required=True)
+    operations_handoff_manifest_parser.add_argument("--operations-bundle", required=True)
+    operations_handoff_manifest_parser.add_argument(
+        "--config", default="config.prospective-evidence-operations-handoff-manifest.example.yaml"
+    )
+    operations_handoff_manifest_parser.add_argument(
+        "--output-dir", default="artifacts/prospective-evidence-operations-handoff-manifest"
     )
 
     accumulation_parser = subparsers.add_parser(
@@ -1477,6 +1493,27 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(format_operations_bundle_admission(operations_bundle_admission_result))
         for artifact_name, artifact_path in operations_bundle_admission_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
+        raise SystemExit(0)
+
+    if args.command == "build-prospective-evidence-operations-handoff-manifest":
+        try:
+            operations_handoff_manifest_result = (
+                build_prospective_evidence_operations_handoff_manifest(
+                    args.bundle_admission,
+                    args.operations_bundle,
+                    args.config,
+                    args.output_dir,
+                )
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_handoff_manifest_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(format_operations_handoff_manifest(operations_handoff_manifest_result))
+        for artifact_name, artifact_path in operations_handoff_manifest_result.export_paths.items():
             print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 

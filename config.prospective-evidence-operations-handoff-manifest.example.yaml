@@ -1,0 +1,10 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_handoff_manifest_v1
+current_bundle_admission_required: true
+stale_bundle_consumption_prohibited: true
+source_projection_passthrough_only: true
+business_state_recomputation_prohibited: true
+read_only: true
+consumer_action_authorization_prohibited: true
+state_mutation_prohibited: true
+network_activity_prohibited: true

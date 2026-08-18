@@ -150,6 +150,25 @@ and projection match. A valid but old bundle is emitted as
 This admission result still does not authorize append, economic/PnL, Paper, or
 live execution.
 
+Build the small, deterministic, read-only consumer handoff manifest only from
+the currentness-admitted bundle and its admission artifact:
+
+```bash
+python -m crypto_bot.cli build-prospective-evidence-operations-handoff-manifest \
+  --bundle-admission artifacts/prospective-evidence-operations-bundle-admission/<admission>.json \
+  --operations-bundle artifacts/prospective-evidence-operations-bundle/<bundle>.json \
+  --config config.prospective-evidence-operations-handoff-manifest.example.yaml \
+  --output-dir artifacts/prospective-evidence-operations-handoff-manifest
+```
+
+Only `current_bundle_admitted` produces a readable manifest. It projects the
+validated stage, gate, next legal action, sample counts, and existing
+authorization flags without recomputing business state. A stale admission is
+materialized only as a blocked, unreadable marker with an empty status CSV;
+neither result authorizes actions, mutation, network activity, Paper, or live
+trading. The manifest is a future operator/API/UI read contract, not an API or
+frontend implementation.
+
 Run one Live Shadow observation:
 
 ```bash
