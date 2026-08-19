@@ -185,6 +185,32 @@ manifest, bundle, and currentness validators replay successfully. Any missing,
 stale, tampered, or mismatched parent fails closed with a non-zero exit code;
 the machine-readable JSON remains a read barrier, not an execution gate.
 
+Package a verified handoff for offline operator or deployment transfer. The
+builder first runs the consumer verification gate, then copies the original
+manifest, admission, bundle, sidecars, and bundle payload bytes into one
+content-addressed package directory:
+
+```bash
+python -m crypto_bot.cli build-prospective-evidence-operations-handoff-delivery \
+  --handoff-manifest artifacts/prospective-evidence-operations-handoff-manifest/<manifest>.json \
+  --bundle-admission artifacts/prospective-evidence-operations-bundle-admission/<admission>.json \
+  --operations-bundle artifacts/prospective-evidence-operations-bundle/<bundle>.json \
+  --config config.prospective-evidence-operations-handoff-delivery.example.yaml \
+  --output-dir artifacts/prospective-evidence-operations-handoff-delivery
+```
+
+Verify the package using only its own payload (never the source `reports/` or
+`artifacts/` trees):
+
+```bash
+python -m crypto_bot.cli verify-prospective-evidence-operations-handoff-delivery \
+  --delivery-package artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json
+```
+
+Package verification replays the existing consumer gate and preserves
+`safe_to_consume_read_only=true` without granting action, mutation, network,
+Paper, or live authority.
+
 Run one Live Shadow observation:
 
 ```bash

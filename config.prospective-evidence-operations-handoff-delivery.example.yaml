@@ -1,0 +1,12 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_handoff_delivery_v1
+consumer_verification_required: true
+package_self_contained_required: true
+original_bytes_required: true
+absolute_paths_prohibited: true
+undeclared_payload_files_prohibited: true
+external_dependency_fallback_prohibited: true
+read_only: true
+action_authorization_prohibited: true
+state_mutation_prohibited: true
+network_activity_prohibited: true

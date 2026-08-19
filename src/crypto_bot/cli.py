@@ -172,6 +172,12 @@ from crypto_bot.market.prospective_evidence_operations_handoff_verification impo
     format_handoff_manifest_verification,
     verify_prospective_evidence_operations_handoff_manifest,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_delivery import (
+    OperationsHandoffDeliveryResult,
+    build_prospective_evidence_operations_handoff_delivery,
+    format_operations_handoff_delivery,
+    validate_prospective_evidence_operations_handoff_delivery,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -747,6 +753,24 @@ def main() -> None:
     operations_handoff_verification_parser.add_argument("--handoff-manifest", required=True)
     operations_handoff_verification_parser.add_argument("--bundle-admission", required=True)
     operations_handoff_verification_parser.add_argument("--operations-bundle", required=True)
+
+    operations_handoff_delivery_parser = subparsers.add_parser(
+        "build-prospective-evidence-operations-handoff-delivery"
+    )
+    operations_handoff_delivery_parser.add_argument("--handoff-manifest", required=True)
+    operations_handoff_delivery_parser.add_argument("--bundle-admission", required=True)
+    operations_handoff_delivery_parser.add_argument("--operations-bundle", required=True)
+    operations_handoff_delivery_parser.add_argument(
+        "--config", default="config.prospective-evidence-operations-handoff-delivery.example.yaml"
+    )
+    operations_handoff_delivery_parser.add_argument(
+        "--output-dir", default="artifacts/prospective-evidence-operations-handoff-delivery"
+    )
+
+    operations_handoff_delivery_verify_parser = subparsers.add_parser(
+        "verify-prospective-evidence-operations-handoff-delivery"
+    )
+    operations_handoff_delivery_verify_parser.add_argument("--delivery-package", required=True)
 
     accumulation_parser = subparsers.add_parser(
         "freeze-prospective-epoch-accumulation-policy"
@@ -1539,6 +1563,37 @@ def main() -> None:
             print(f"prospective_evidence_operations_handoff_verification_failed: {exc}", file=sys.stderr)
             raise SystemExit(2) from exc
         print(format_handoff_manifest_verification(verification_result))
+        raise SystemExit(0)
+
+    if args.command == "build-prospective-evidence-operations-handoff-delivery":
+        try:
+            delivery_result = build_prospective_evidence_operations_handoff_delivery(
+                args.handoff_manifest,
+                args.bundle_admission,
+                args.operations_bundle,
+                args.config,
+                args.output_dir,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_evidence_operations_handoff_delivery_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(format_operations_handoff_delivery(delivery_result))
+        print(f"exported_package: {delivery_result.export_paths['package']}")
+        raise SystemExit(0)
+
+    if args.command == "verify-prospective-evidence-operations-handoff-delivery":
+        try:
+            delivery_report = validate_prospective_evidence_operations_handoff_delivery(
+                args.delivery_package
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(f"prospective_evidence_operations_handoff_delivery_verification_failed: {exc}", file=sys.stderr)
+            raise SystemExit(2) from exc
+        print(
+            format_operations_handoff_delivery(
+                OperationsHandoffDeliveryResult(delivery_report, {})
+            )
+        )
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-epoch-accumulation-policy":
