@@ -230,6 +230,30 @@ capture, append, economic/PnL, Paper, or live execution. The legacy
 unchanged; the two modes are mutually exclusive, and the current mode never
 writes `reports/` or `artifacts/`.
 
+Apply the governance freshness read barrier only with an explicit, validated
+epoch closeout/rollover report:
+
+```python
+from crypto_bot.market.prospective_evidence_operations_handoff_freshness import (
+    load_governance_fresh_current_operations_handoff,
+)
+
+handoff = load_governance_fresh_current_operations_handoff(
+    delivery_admission,
+    handoff_delivery,
+    current_operations_snapshot,
+    epoch_closeout_rollover,
+)
+```
+
+The freshness loader returns the existing immutable read model unchanged when
+the validated rollover action is `hold`. It rejects `transition_eligible`,
+`rollover_next_window`, unknown actions, and any rollover bound to a different
+epoch assembly. It consumes only content-addressed governance evidence: it
+does not use system time, discover the latest report, create closeout/rollover
+artifacts, mutate state, count samples, or authorize economic/PnL, Paper, live,
+API, frontend, or trading behavior.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
