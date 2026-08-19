@@ -149,4 +149,3 @@ def _tree_digest(root: Path) -> str:
         if path.is_file():
             digest.update(path.read_bytes())
     return digest.hexdigest()
-
