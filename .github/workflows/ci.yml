@@ -69,6 +69,7 @@ jobs:
           src/crypto_bot/market/prospective_evidence_operations_handoff_manifest.py
           src/crypto_bot/market/prospective_evidence_operations_handoff_verification.py
           src/crypto_bot/market/prospective_evidence_operations_handoff_delivery.py
+          src/crypto_bot/market/prospective_evidence_operations_handoff_delivery_admission.py
           src/crypto_bot/prospective_epoch_accumulation_policy.py
           src/crypto_bot/prospective_epoch_assembly_state_machine.py
           src/crypto_bot/cross_sectional_variant_preregistration.py

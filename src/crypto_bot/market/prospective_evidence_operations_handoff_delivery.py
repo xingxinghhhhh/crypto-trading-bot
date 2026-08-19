@@ -14,7 +14,11 @@ from typing import Any, Mapping, Sequence
 import yaml
 
 from crypto_bot.errors import MarketDataError
-from crypto_bot.market.prospective_evidence_operations_bundle import BUNDLE_PREFIX
+from crypto_bot.market.prospective_evidence_operations_bundle import (
+    BUNDLE_PREFIX,
+    FALSE_BUNDLE_FLAGS,
+    SOURCE_STATE_FIELDS,
+)
 from crypto_bot.market.prospective_evidence_operations_bundle_admission import (
     PREFIX as ADMISSION_PREFIX,
 )
@@ -58,6 +62,19 @@ _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 class OperationsHandoffDeliveryResult:
     report: dict[str, Any]
     export_paths: dict[str, str]
+
+
+@dataclass(frozen=True)
+class ValidatedHandoffDeliveryInspection:
+    """Normalized, package-derived facts for downstream read-only gates."""
+
+    delivery_report: dict[str, Any]
+    delivery_identity: str
+    operations_bundle_identity: str
+    source_operations_snapshot_identity: str
+    consumer_verification_status: str
+    safe_to_consume_read_only: bool
+    source_projection: dict[str, Any]
 
 
 def load_operations_handoff_delivery_config(
@@ -192,9 +209,9 @@ def build_prospective_evidence_operations_handoff_delivery(
     )
 
 
-def validate_prospective_evidence_operations_handoff_delivery(
+def inspect_prospective_evidence_operations_handoff_delivery(
     path: str | Path,
-) -> dict[str, Any]:
+) -> ValidatedHandoffDeliveryInspection:
     report_path = Path(path).resolve()
     report = _load_json(report_path)
     delivery_sha = report.get("delivery_sha256")
@@ -251,7 +268,36 @@ def validate_prospective_evidence_operations_handoff_delivery(
         for key, identity_key in _VERIFICATION_ID_FIELDS.items()
     ):
         raise MarketDataError("operations handoff delivery verification mismatch")
-    return report
+    projection_input = {
+        **verification,
+        **{
+            field: FALSE_BUNDLE_FLAGS[field]
+            for field in SOURCE_STATE_FIELDS
+            if field in FALSE_BUNDLE_FLAGS
+        },
+    }
+    source_projection = {
+        field: projection_input.get(field) for field in SOURCE_STATE_FIELDS
+    }
+    if any(value is None for value in source_projection.values()):
+        raise MarketDataError("operations handoff delivery source projection missing")
+    return ValidatedHandoffDeliveryInspection(
+        delivery_report=report,
+        delivery_identity=delivery_sha,
+        operations_bundle_identity=verification["bundle_identity"],
+        source_operations_snapshot_identity=verification["source_snapshot_identity"],
+        consumer_verification_status=verification["verification_status"],
+        safe_to_consume_read_only=verification["safe_to_consume_read_only"],
+        source_projection=source_projection,
+    )
+
+
+def validate_prospective_evidence_operations_handoff_delivery(
+    path: str | Path,
+) -> dict[str, Any]:
+    """Validate a delivery package while preserving the legacy return shape."""
+
+    return inspect_prospective_evidence_operations_handoff_delivery(path).delivery_report
 
 
 def format_operations_handoff_delivery(result: OperationsHandoffDeliveryResult) -> str:

@@ -1,0 +1,12 @@
+schema_version: 1
+policy_id: prospective_evidence_operations_handoff_delivery_admission_v1
+valid_delivery_required: true
+exact_source_snapshot_identity_required: true
+source_projection_match_required: true
+stale_delivery_current_consumption_prohibited: true
+automatic_delivery_refresh_prohibited: true
+manual_currentness_override_prohibited: true
+read_only: true
+action_authorization_prohibited: true
+state_mutation_prohibited: true
+network_activity_prohibited: true

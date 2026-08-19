@@ -178,6 +178,10 @@ from crypto_bot.market.prospective_evidence_operations_handoff_delivery import (
     format_operations_handoff_delivery,
     validate_prospective_evidence_operations_handoff_delivery,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_delivery_admission import (
+    format_operations_handoff_delivery_admission,
+    freeze_prospective_evidence_operations_handoff_delivery_admission,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -771,6 +775,22 @@ def main() -> None:
         "verify-prospective-evidence-operations-handoff-delivery"
     )
     operations_handoff_delivery_verify_parser.add_argument("--delivery-package", required=True)
+
+    operations_handoff_delivery_admission_parser = subparsers.add_parser(
+        "freeze-prospective-evidence-operations-handoff-delivery-admission"
+    )
+    operations_handoff_delivery_admission_parser.add_argument("--handoff-delivery", required=True)
+    operations_handoff_delivery_admission_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_handoff_delivery_admission_parser.add_argument(
+        "--config",
+        default="config.prospective-evidence-operations-handoff-delivery-admission.example.yaml",
+    )
+    operations_handoff_delivery_admission_parser.add_argument(
+        "--output-dir",
+        default="artifacts/prospective-evidence-operations-handoff-delivery-admission",
+    )
 
     accumulation_parser = subparsers.add_parser(
         "freeze-prospective-epoch-accumulation-policy"
@@ -1594,6 +1614,27 @@ def main() -> None:
                 OperationsHandoffDeliveryResult(delivery_report, {})
             )
         )
+        raise SystemExit(0)
+
+    if args.command == "freeze-prospective-evidence-operations-handoff-delivery-admission":
+        try:
+            delivery_admission_result = (
+                freeze_prospective_evidence_operations_handoff_delivery_admission(
+                    args.handoff_delivery,
+                    args.current_operations_snapshot,
+                    args.config,
+                    args.output_dir,
+                )
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_handoff_delivery_admission_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(format_operations_handoff_delivery_admission(delivery_admission_result))
+        for artifact_name, artifact_path in delivery_admission_result.export_paths.items():
+            print(f"exported_{artifact_name}: {artifact_path}")
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-epoch-accumulation-policy":

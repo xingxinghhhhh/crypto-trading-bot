@@ -211,6 +211,24 @@ Package verification replays the existing consumer gate and preserves
 `safe_to_consume_read_only=true` without granting action, mutation, network,
 Paper, or live authority.
 
+Admit a verified delivery package only when it is current against an explicitly
+validated operations snapshot:
+
+```bash
+python -m crypto_bot.cli freeze-prospective-evidence-operations-handoff-delivery-admission \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --config config.prospective-evidence-operations-handoff-delivery-admission.example.yaml \
+  --output-dir artifacts/prospective-evidence-operations-handoff-delivery-admission
+```
+
+The gate emits `current_delivery_admitted` only when the delivery's source
+snapshot identity and canonical source projection both match the explicit
+current snapshot. Otherwise it emits `blocked_stale_delivery`; an identity
+match with a projection mismatch fails closed. It never refreshes artifacts,
+discovers a latest snapshot, mutates state, performs network activity, or
+authorizes capture, append, economic/PnL, Paper, or live execution.
+
 Run one Live Shadow observation:
 
 ```bash
