@@ -182,6 +182,10 @@ from crypto_bot.market.prospective_evidence_operations_handoff_delivery_admissio
     format_operations_handoff_delivery_admission,
     freeze_prospective_evidence_operations_handoff_delivery_admission,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_delivery_verification import (
+    format_prospective_evidence_operations_handoff_delivery_verification,
+    verify_prospective_evidence_operations_handoff_delivery,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -774,7 +778,13 @@ def main() -> None:
     operations_handoff_delivery_verify_parser = subparsers.add_parser(
         "verify-prospective-evidence-operations-handoff-delivery"
     )
-    operations_handoff_delivery_verify_parser.add_argument("--delivery-package", required=True)
+    operations_handoff_delivery_verify_mode = operations_handoff_delivery_verify_parser.add_mutually_exclusive_group(
+        required=True
+    )
+    operations_handoff_delivery_verify_mode.add_argument("--delivery-package")
+    operations_handoff_delivery_verify_mode.add_argument("--delivery-admission")
+    operations_handoff_delivery_verify_parser.add_argument("--handoff-delivery")
+    operations_handoff_delivery_verify_parser.add_argument("--current-operations-snapshot")
 
     operations_handoff_delivery_admission_parser = subparsers.add_parser(
         "freeze-prospective-evidence-operations-handoff-delivery-admission"
@@ -1602,18 +1612,47 @@ def main() -> None:
         raise SystemExit(0)
 
     if args.command == "verify-prospective-evidence-operations-handoff-delivery":
-        try:
-            delivery_report = validate_prospective_evidence_operations_handoff_delivery(
-                args.delivery_package
+        if args.delivery_package is not None and (
+            args.handoff_delivery is not None
+            or args.current_operations_snapshot is not None
+        ):
+            print(
+                "prospective_evidence_operations_handoff_delivery_verification_failed: "
+                "package-only and current read-barrier inputs are mutually exclusive",
+                file=sys.stderr,
             )
+            raise SystemExit(2)
+        try:
+            if args.delivery_package is not None:
+                delivery_report = validate_prospective_evidence_operations_handoff_delivery(
+                    args.delivery_package
+                )
+            elif args.handoff_delivery is None or args.current_operations_snapshot is None:
+                raise ValueError(
+                    "current read-barrier mode requires --delivery-admission, "
+                    "--handoff-delivery, and --current-operations-snapshot"
+                )
+            else:
+                verification_result = verify_prospective_evidence_operations_handoff_delivery(
+                    args.delivery_admission,
+                    args.handoff_delivery,
+                    args.current_operations_snapshot,
+                )
         except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
             print(f"prospective_evidence_operations_handoff_delivery_verification_failed: {exc}", file=sys.stderr)
             raise SystemExit(2) from exc
-        print(
-            format_operations_handoff_delivery(
-                OperationsHandoffDeliveryResult(delivery_report, {})
+        if args.delivery_package is not None:
+            print(
+                format_operations_handoff_delivery(
+                    OperationsHandoffDeliveryResult(delivery_report, {})
+                )
             )
-        )
+        else:
+            print(
+                format_prospective_evidence_operations_handoff_delivery_verification(
+                    verification_result
+                )
+            )
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-evidence-operations-handoff-delivery-admission":

@@ -211,6 +211,25 @@ Package verification replays the existing consumer gate and preserves
 `safe_to_consume_read_only=true` without granting action, mutation, network,
 Paper, or live authority.
 
+Use the final current read barrier only when a delivery admission, its bound
+delivery package, and the explicit current operations snapshot are all
+available:
+
+```bash
+python -m crypto_bot.cli verify-prospective-evidence-operations-handoff-delivery \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json
+```
+
+This mode is a pure read barrier: exit `0` and
+`safe_to_consume_current_read_only=true` mean only that the current delivery
+may be consumed as read-only evidence. It never authorizes `next_legal_action`,
+capture, append, economic/PnL, Paper, or live execution. The legacy
+`--delivery-package <delivery.json>` package-only verification mode remains
+unchanged; the two modes are mutually exclusive, and the current mode never
+writes `reports/` or `artifacts/`.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
