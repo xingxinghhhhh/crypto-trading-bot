@@ -292,6 +292,28 @@ upstream-invalid inputs fail closed with empty stdout and exit `2`. It never
 creates or updates a projection, discovers inputs, writes `reports/` or
 `artifacts/`, or grants any execution or economic authority.
 
+Materialize that projection into one controlled, content-addressed artifact
+after the same four explicit inputs pass the existing projector:
+
+```bash
+python -m crypto_bot.cli materialize-verified-current-operations-handoff-projection \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json \
+  --output-dir artifacts/prospective-evidence-operations-handoff-consumer-projection
+```
+
+The materializer writes exactly one canonical UTF-8 JSON file without a
+terminal newline, named
+`prospective-evidence-operations-handoff-consumer-projection.<sha256>.json`.
+The filename digest is the SHA-256 of those exact bytes. Re-running with the
+same inputs is an idempotent no-op; an existing same-name file with different
+bytes fails closed and is never overwritten. The output directory must remain
+under `artifacts/` (never `reports/` or a path escape). The file contains only
+the existing 20-key projection and is still not a market, PnL, readiness,
+Paper, live, API, frontend, or trading authorization.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
