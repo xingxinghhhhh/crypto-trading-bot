@@ -190,6 +190,9 @@ from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projecti
     format_governance_fresh_current_operations_handoff_projection,
     project_governance_fresh_current_operations_handoff,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projection_verification import (
+    verify_governance_fresh_current_operations_handoff_projection,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -819,6 +822,25 @@ def main() -> None:
         "--current-operations-snapshot", required=True
     )
     operations_handoff_consumer_projection_parser.add_argument(
+        "--epoch-closeout-rollover", required=True
+    )
+
+    operations_handoff_consumer_projection_verification_parser = subparsers.add_parser(
+        "verify-current-operations-handoff-projection"
+    )
+    operations_handoff_consumer_projection_verification_parser.add_argument(
+        "--projection", required=True
+    )
+    operations_handoff_consumer_projection_verification_parser.add_argument(
+        "--delivery-admission", required=True
+    )
+    operations_handoff_consumer_projection_verification_parser.add_argument(
+        "--handoff-delivery", required=True
+    )
+    operations_handoff_consumer_projection_verification_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_handoff_consumer_projection_verification_parser.add_argument(
         "--epoch-closeout-rollover", required=True
     )
 
@@ -1686,6 +1708,24 @@ def main() -> None:
         except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
             print(
                 f"prospective_evidence_operations_handoff_consumer_projection_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(format_governance_fresh_current_operations_handoff_projection(projection))
+        raise SystemExit(0)
+
+    if args.command == "verify-current-operations-handoff-projection":
+        try:
+            projection = verify_governance_fresh_current_operations_handoff_projection(
+                args.projection,
+                args.delivery_admission,
+                args.handoff_delivery,
+                args.current_operations_snapshot,
+                args.epoch_closeout_rollover,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_handoff_consumer_projection_verification_failed: {exc}",
                 file=sys.stderr,
             )
             raise SystemExit(2) from exc

@@ -272,6 +272,26 @@ path-free consumer contract; it does not revalidate parents, discover latest
 artifacts, write files, execute `next_legal_action`, or grant readiness,
 economic/PnL, Paper, live, API, frontend, or trading authority.
 
+Replay a persisted projection against the same explicit evidence inputs before
+passing it to another consumer:
+
+```bash
+python -m crypto_bot.cli verify-current-operations-handoff-projection \
+  --projection reports/prospective-evidence-operations-handoff-projection.json \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json
+```
+
+The verification command accepts the canonical projection JSON body with zero
+or one terminal newline, recomputes the existing projection through its
+freshness-gated chain, and requires exact equality. It returns the unchanged
+20-key projection on success; malformed, non-canonical, tampered, stale, or
+upstream-invalid inputs fail closed with empty stdout and exit `2`. It never
+creates or updates a projection, discovers inputs, writes `reports/` or
+`artifacts/`, or grants any execution or economic authority.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
