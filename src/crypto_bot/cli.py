@@ -197,6 +197,10 @@ from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projecti
     DEFAULT_OUTPUT_DIR as CONSUMER_PROJECTION_MATERIALIZATION_DEFAULT_OUTPUT_DIR,
     materialize_governance_fresh_current_operations_handoff_projection,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projection_provenance_receipt import (
+    DEFAULT_OUTPUT_DIR as CONSUMER_PROJECTION_RECEIPT_DEFAULT_OUTPUT_DIR,
+    materialize_governance_fresh_current_operations_handoff_projection_provenance_receipt,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -866,6 +870,29 @@ def main() -> None:
     operations_handoff_consumer_projection_materialization_parser.add_argument(
         "--output-dir",
         default=CONSUMER_PROJECTION_MATERIALIZATION_DEFAULT_OUTPUT_DIR,
+    )
+
+    operations_handoff_consumer_projection_receipt_parser = subparsers.add_parser(
+        "materialize-verified-current-operations-handoff-projection-receipt"
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--projection", required=True
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--delivery-admission", required=True
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--handoff-delivery", required=True
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--epoch-closeout-rollover", required=True
+    )
+    operations_handoff_consumer_projection_receipt_parser.add_argument(
+        "--output-dir",
+        default=CONSUMER_PROJECTION_RECEIPT_DEFAULT_OUTPUT_DIR,
     )
 
     accumulation_parser = subparsers.add_parser(
@@ -1775,6 +1802,28 @@ def main() -> None:
             raise SystemExit(2) from exc
         print(f"consumer_projection_sha256: {materialization_result.projection_sha256}")
         print(f"exported_consumer_projection: {materialization_result.projection_path}")
+        raise SystemExit(0)
+
+    if args.command == "materialize-verified-current-operations-handoff-projection-receipt":
+        try:
+            receipt_result = (
+                materialize_governance_fresh_current_operations_handoff_projection_provenance_receipt(
+                    args.projection,
+                    args.delivery_admission,
+                    args.handoff_delivery,
+                    args.current_operations_snapshot,
+                    args.epoch_closeout_rollover,
+                    args.output_dir,
+                )
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_handoff_consumer_projection_provenance_receipt_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(f"consumer_projection_receipt_sha256: {receipt_result.receipt_sha256}")
+        print(f"exported_consumer_projection_receipt: {receipt_result.receipt_path}")
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-evidence-operations-handoff-delivery-admission":

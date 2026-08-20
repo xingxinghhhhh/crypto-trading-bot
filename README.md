@@ -314,6 +314,29 @@ under `artifacts/` (never `reports/` or a path escape). The file contains only
 the existing 20-key projection and is still not a market, PnL, readiness,
 Paper, live, API, frontend, or trading authorization.
 
+Bind a materialized projection to the four explicit governance identities with
+one deterministic provenance receipt:
+
+```bash
+python -m crypto_bot.cli materialize-verified-current-operations-handoff-projection-receipt \
+  --projection artifacts/prospective-evidence-operations-handoff-consumer-projection/<projection_sha>.json \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json \
+  --output-dir artifacts/prospective-evidence-operations-handoff-consumer-projection-provenance-receipt
+```
+
+The receipt contains exactly six string fields: its version, the exact
+projection byte digest, delivery-admission identity, handoff-delivery identity,
+current-operations-snapshot identity, and the validated rollover filename
+identity. It is compact sorted-key UTF-8 JSON without a BOM or newline, named
+`prospective-evidence-operations-handoff-consumer-projection-provenance-receipt.<sha256>.json`.
+It is written only under `artifacts/`, is atomic and idempotent, and never
+overwrites a collision. A receipt is provenance only; it does not alter the
+projection schema or grant readiness, economic/PnL, Paper, live, API, frontend,
+or trading authority.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
