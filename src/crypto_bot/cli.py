@@ -186,6 +186,10 @@ from crypto_bot.market.prospective_evidence_operations_handoff_delivery_verifica
     format_prospective_evidence_operations_handoff_delivery_verification,
     verify_prospective_evidence_operations_handoff_delivery,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projection import (
+    format_governance_fresh_current_operations_handoff_projection,
+    project_governance_fresh_current_operations_handoff,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -800,6 +804,22 @@ def main() -> None:
     operations_handoff_delivery_admission_parser.add_argument(
         "--output-dir",
         default="artifacts/prospective-evidence-operations-handoff-delivery-admission",
+    )
+
+    operations_handoff_consumer_projection_parser = subparsers.add_parser(
+        "show-verified-current-operations-handoff"
+    )
+    operations_handoff_consumer_projection_parser.add_argument(
+        "--delivery-admission", required=True
+    )
+    operations_handoff_consumer_projection_parser.add_argument(
+        "--handoff-delivery", required=True
+    )
+    operations_handoff_consumer_projection_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_handoff_consumer_projection_parser.add_argument(
+        "--epoch-closeout-rollover", required=True
     )
 
     accumulation_parser = subparsers.add_parser(
@@ -1653,6 +1673,23 @@ def main() -> None:
                     verification_result
                 )
             )
+        raise SystemExit(0)
+
+    if args.command == "show-verified-current-operations-handoff":
+        try:
+            projection = project_governance_fresh_current_operations_handoff(
+                args.delivery_admission,
+                args.handoff_delivery,
+                args.current_operations_snapshot,
+                args.epoch_closeout_rollover,
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                f"prospective_evidence_operations_handoff_consumer_projection_failed: {exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(format_governance_fresh_current_operations_handoff_projection(projection))
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-evidence-operations-handoff-delivery-admission":

@@ -254,6 +254,24 @@ does not use system time, discover the latest report, create closeout/rollover
 artifacts, mutate state, count samples, or authorize economic/PnL, Paper, live,
 API, frontend, or trading behavior.
 
+Project a governance-fresh handoff for a machine consumer with four explicit
+inputs:
+
+```bash
+python -m crypto_bot.cli show-verified-current-operations-handoff \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json
+```
+
+The command prints exactly one compact, sorted-key JSON line on success and
+exits `0`. Validation or input errors print a concise fail-closed message to
+stderr, emit no stdout, and exit `2`. The projection is a stable,
+path-free consumer contract; it does not revalidate parents, discover latest
+artifacts, write files, execute `next_legal_action`, or grant readiness,
+economic/PnL, Paper, live, API, frontend, or trading authority.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
