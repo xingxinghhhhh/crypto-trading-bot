@@ -337,6 +337,28 @@ overwrites a collision. A receipt is provenance only; it does not alter the
 projection schema or grant readiness, economic/PnL, Paper, live, API, frontend,
 or trading authority.
 
+Verify a persisted receipt as a read-only barrier before handing it to another
+offline consumer:
+
+```bash
+python -m crypto_bot.cli verify-current-operations-handoff-projection-receipt \
+  --receipt artifacts/prospective-evidence-operations-handoff-consumer-projection-provenance-receipt/<receipt_sha>.json \
+  --projection artifacts/prospective-evidence-operations-handoff-consumer-projection/<projection_sha>.json \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json
+```
+
+The verifier requires the receipt to be the exact six-string-field,
+content-addressed artifact produced above, then replays the existing projection
+verifier and checks the materialized projection bytes and validated rollover
+identity against the receipt. Success prints the unchanged canonical receipt
+JSON followed by one terminal newline; failures print no stdout and exit `2`.
+The command is strictly read-only: it never creates, repairs, refreshes, or
+modifies a projection or receipt, and it never discovers a latest artifact or
+grants readiness, economic/PnL, Paper, live, API, frontend, or trading authority.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
