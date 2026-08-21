@@ -205,6 +205,9 @@ from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projecti
 from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projection_provenance_receipt_verification import (
     verify_governance_fresh_current_operations_handoff_projection_provenance_receipt,
 )
+from crypto_bot.market.prospective_evidence_operations_handoff_consumer_projection_provenance_audit_summary import (
+    build_governance_fresh_current_operations_handoff_projection_provenance_audit_summary,
+)
 from crypto_bot.market.direct_execution_mapping_audit import (
     audit_okx_direct_six_1h_execution_mapping,
     format_direct_execution_mapping_audit,
@@ -918,6 +921,28 @@ def main() -> None:
         "--current-operations-snapshot", required=True
     )
     operations_handoff_consumer_projection_receipt_verification_parser.add_argument(
+        "--epoch-closeout-rollover", required=True
+    )
+
+    operations_handoff_consumer_projection_audit_summary_parser = subparsers.add_parser(
+        "show-current-operations-handoff-provenance-audit-summary"
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
+        "--receipt", required=True
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
+        "--projection", required=True
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
+        "--delivery-admission", required=True
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
+        "--handoff-delivery", required=True
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
+        "--current-operations-snapshot", required=True
+    )
+    operations_handoff_consumer_projection_audit_summary_parser.add_argument(
         "--epoch-closeout-rollover", required=True
     )
 
@@ -1872,6 +1897,28 @@ def main() -> None:
             )
             raise SystemExit(2) from exc
         print(json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+        raise SystemExit(0)
+
+    if args.command == "show-current-operations-handoff-provenance-audit-summary":
+        try:
+            summary = (
+                build_governance_fresh_current_operations_handoff_projection_provenance_audit_summary(
+                    args.receipt,
+                    args.projection,
+                    args.delivery_admission,
+                    args.handoff_delivery,
+                    args.current_operations_snapshot,
+                    args.epoch_closeout_rollover,
+                )
+            )
+        except (FileNotFoundError, OSError, ValueError, MarketDataError) as exc:
+            print(
+                "prospective_evidence_operations_handoff_consumer_projection_provenance_audit_summary_failed: "
+                f"{exc}",
+                file=sys.stderr,
+            )
+            raise SystemExit(2) from exc
+        print(json.dumps(summary, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
         raise SystemExit(0)
 
     if args.command == "freeze-prospective-evidence-operations-handoff-delivery-admission":

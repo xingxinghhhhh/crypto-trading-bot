@@ -359,6 +359,28 @@ The command is strictly read-only: it never creates, repairs, refreshes, or
 modifies a projection or receipt, and it never discovers a latest artifact or
 grants readiness, economic/PnL, Paper, live, API, frontend, or trading authority.
 
+Create a deterministic operator-facing audit summary from the explicitly
+verified receipt and projection:
+
+```bash
+python -m crypto_bot.cli show-current-operations-handoff-provenance-audit-summary \
+  --receipt artifacts/prospective-evidence-operations-handoff-consumer-projection-provenance-receipt/<receipt_sha>.json \
+  --projection artifacts/prospective-evidence-operations-handoff-consumer-projection/<projection_sha>.json \
+  --delivery-admission artifacts/prospective-evidence-operations-handoff-delivery-admission/<admission>.json \
+  --handoff-delivery artifacts/prospective-evidence-operations-handoff-delivery/<package>/prospective-evidence-operations-handoff-delivery.<sha>.json \
+  --current-operations-snapshot reports/prospective-evidence-operations-snapshot/<snapshot>.json \
+  --epoch-closeout-rollover reports/prospective-epoch-closeout-rollover/<rollover>.json
+```
+
+The summary first runs the receipt verification barrier, then reads only the
+explicitly supplied projection to expose its existing 20-key governance state
+alongside the receipt, source-snapshot, and projection identities. It emits
+one canonical 23-field JSON line and performs no hash recomputation, discovery, parent-file
+traversal, artifact/report write, or authority change. Invalid, stale, or
+tampered inputs fail closed with empty stdout and exit `2`; the summary is an
+explanation layer, not profitability, readiness, Paper, live, API, frontend,
+or trading authorization.
+
 Admit a verified delivery package only when it is current against an explicitly
 validated operations snapshot:
 
